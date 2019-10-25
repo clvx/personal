@@ -4,9 +4,26 @@ on: [push]
 
 jobs:
   build:
+    name: Build site
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
     - uses: clvx/hugo-action@master
-    - name: validate
-      run: ls -laR public
+    - uses: actions/upload-artifact@v1
+      with:
+        name: blog
+        path: public/
+
+  publish:
+    name: Publish to bucket
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/download-artifact@v1
+      with:
+        name: blog
+    - shell: bash
+      run: ls -la
+    - uses: clvx/s3cmd-action@master
+      with:
+        args: --access_key=${{ secrets.ACCESS_KEY }} --secret_key=${{ secrets.SECRET_KEY }} --host=${{ secrets.BUCKET_REGION }} --host-bucket=${{ secrets.BUCKET_NAME }}.${{ secrets.BUCKET_REGION }} sync --delete-removed blog/ s3://${{ secrets.BUCKET_NAME }}/
