@@ -1,0 +1,16 @@
+name: CI
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - uses: clvx/hugo-action
+      with:
+        args: hugo
+    - name: validate
+      run: ls -laR public
