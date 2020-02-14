@@ -15,15 +15,14 @@ jobs:
         path: public/
 
   publish:
-    name: Publish to bucket
-    needs: build
+    name: Deploy to github pages
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/download-artifact@v1
+    - uses: webfactory/ssh-agent@v0.2.0
       with:
-        name: blog
-    - shell: bash
-      run: ls -la
-    - uses: clvx/s3cmd-action@master
+        ssh-private-key: ${{ secrets.DEPLOY_KEY }}
+    - uses: JamesIves/github-pages-deploy-action@releases/v3
       with:
-        args: --access_key=${{ secrets.ACCESS_KEY }} --secret_key=${{ secrets.SECRET_KEY }} --host=${{ secrets.BUCKET_REGION }} --host-bucket=${{ secrets.BUCKET_NAME }}.${{ secrets.BUCKET_REGION }} sync --delete-removed blog/ s3://${{ secrets.BUCKET_NAME }}/
+        SSH: true
+        BRANCH: gh-pages # The branch the action should deploy to.
+        FOLDER: . # The folder the action should deploy.
