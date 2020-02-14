@@ -1,4 +1,4 @@
-![](https://github.com/<OWNER>/<REPOSITORY>/workflows/<WORKFLOW_NAME>/badge.svg)
+![](https://github.com/clvx/bitclvx-blog/workflows/CI/badge.svg)
 
 # Blog
 
