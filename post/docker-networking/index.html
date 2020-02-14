@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="Luis Michael Ibarra">
+  <meta name="description" content="cat /dev/brain 2&amp;&gt; /dev/null">
+  <meta name="generator" content="Hugo 0.61.0" />
+
+  <title>Docker Networking and Linux Namespaces Deep Dive &middot; Periferia Binaria</title>
+
+  <link rel="shortcut icon" href="https://blog.bitclvx.com/images/favicon.ico">
+  <link rel="stylesheet" href="https://blog.bitclvx.com/css/spectre.min.css">
+  <link rel="stylesheet" href="https://blog.bitclvx.com/css/style.css">
+  <link rel="stylesheet" href="https://blog.bitclvx.com/css/highlight.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.9.0/css/all.min.css">
+  
+    <link rel="stylesheet" href="https://cdn.rawgit.com/konpa/devicon/df6431e323547add1b4cf45992913f15286456d3/devicon.min.css">
+  
+
+  
+    <link href="" rel="alternate" type="application/rss+xml" title="Periferia Binaria" />
+  
+
+  
+  <meta property="og:title" content="Docker Networking and Linux Namespaces Deep Dive" />
+<meta property="og:description" content="This is a write up of my docker networking demo at the Docker Orlando meetup.
+Let&#39;s begin with the diagram.
+We can see in figure 1 a server which can be a physical device or a vm(cloud or not) connected to the Internet by an interface ens3 as its gateway interface - ens3 because kvm configures it by default. Then we have four Linux bridges. One is docker0 which is the default linux bridge configured when Docker is set up." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.bitclvx.com/post/docker-networking/" />
+<meta property="article:published_time" content="2017-05-20T00:00:00+00:00" />
+<meta property="article:modified_time" content="2017-05-20T00:00:00+00:00" />
+
+  
+  <meta itemprop="name" content="Docker Networking and Linux Namespaces Deep Dive">
+<meta itemprop="description" content="This is a write up of my docker networking demo at the Docker Orlando meetup.
+Let&#39;s begin with the diagram.
+We can see in figure 1 a server which can be a physical device or a vm(cloud or not) connected to the Internet by an interface ens3 as its gateway interface - ens3 because kvm configures it by default. Then we have four Linux bridges. One is docker0 which is the default linux bridge configured when Docker is set up.">
+<meta itemprop="datePublished" content="2017-05-20T00:00:00&#43;00:00" />
+<meta itemprop="dateModified" content="2017-05-20T00:00:00&#43;00:00" />
+<meta itemprop="wordCount" content="4733">
+
+
+
+<meta itemprop="keywords" content="docker,namespaces,networking," />
+  <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Docker Networking and Linux Namespaces Deep Dive"/>
+<meta name="twitter:description" content="This is a write up of my docker networking demo at the Docker Orlando meetup.
+Let&#39;s begin with the diagram.
+We can see in figure 1 a server which can be a physical device or a vm(cloud or not) connected to the Internet by an interface ens3 as its gateway interface - ens3 because kvm configures it by default. Then we have four Linux bridges. One is docker0 which is the default linux bridge configured when Docker is set up."/>
+<meta name="twitter:site" content="@https://www.twitter.com/clvx"/>
+
+</head>
+
+<body onload="setPixelFont()">
+  <div class="container p-fixed" style="z-index:3">
+  <nav class="navbar m-2 p-2 s-rounded shadow bg-primary">
+    <section class="navbar-section">
+      <button class="btn btn-action btn-primary s-circle text-gray" id="pixelfont-toggle"><i class="fas fa-robot fa-lg"></i></button>
+    </section>
+    <section class="navbar-section">
+      
+        <a class="btn btn-primary" href='https://blog.bitclvx.com/'>Home</a>
+      
+
+      
+        <a class="btn btn-primary mx-2" href="/about/">About</a>
+      
+
+      
+      <a class="btn btn-accent" href="" target="_blank"><i class="fas fa-rss fa-lg"></i></a>
+      
+    </section>
+  </nav>
+</div>
+
+  <section class="container grid-md">
+  <div class="columns">
+    
+    
+<article class="container p-centered mt-space">
+  <header>
+    <h2 class="text-center">Docker Networking and Linux Namespaces Deep Dive</h2>
+    <h6 class="text-gray text-italic"></h6>
+  </header>
+  <section class="my-gap">
+    <p>This is a write up of my docker networking demo at the Docker Orlando meetup.</p>
+<p>Let's begin with the diagram.</p>
+<p><img src="/docker-networking/docker-networking.png" alt="figure-1"> We can see in <em>figure 1</em> a server which can be a physical device or a vm(cloud or not)
+connected to the Internet by an interface <em>ens3</em> as its gateway interface - <em>ens3</em>
+because kvm configures it by default.
+Then we have four Linux bridges. One is <em>docker0</em> which is the default linux bridge
+configured when Docker is set up. It has connection to the outside world, and it has
+inter-container communication enabled by default. Then we have two network segments managed by Docker
+which are <em>user-defined networks</em>. These bridges are also Linux bridges. One of these
+bridges(<em>demo_internal</em>) is an internal network which means it doesn't have connection to the outside, and
+the other one(<em>demo_net</em>) has connection to the outside world. Finally, there's
+<em>demo_ns</em> which is <strong>only a network namespace</strong> and NOT A VIRTUAL SERVER. This
+segment has two virtual ethernet interfaces which their final end are connected
+to a Linux bridge <em>nsbr0</em>  and to the <em>server</em> respectively.</p>
+<h2 id="docker0">Docker0</h2>
+<p><em>docker0</em> is just a Linux bridge with no modifications whatsoever managed by the
+docker engine. It gives the subnet 172.17.0.0/16, so you can fire up plenty of containers
+to play with. An interesting observation is to see if the host's mac address table
+can map as much containers as the network segment valid hosts.
+The <em>docker0</em> is part of the <em>docker default networks</em>. Docker supports three types
+of networks: bridge(docker0), none, and host.</p>
+<ul>
+<li><em>Bridge</em> is just a Linux bridge where all the containers if no network is specified
+are allocated to it. The bridge network is customisable, but the docker daemon needs
+to be restarted. Options of this bridge can be found in <code>docker network inspect bridge</code>.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Options</th>
+<th align="center">Values</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>com.docker.network.bridge.default_bridge</td>
+<td align="center">true or false</td>
+</tr>
+<tr>
+<td>com.docker.network.bridge.enable_icc</td>
+<td align="center">true or false</td>
+</tr>
+<tr>
+<td>com.docker.network.bridge.enable_ip_masquerade</td>
+<td align="center">true or false</td>
+</tr>
+<tr>
+<td>com.docker.network.bridge.host_binding_ipv4</td>
+<td align="center">ipv4 to bind</td>
+</tr>
+<tr>
+<td>com.docker.network.bridge.name</td>
+<td align="center">bridge name</td>
+</tr>
+<tr>
+<td>com.docker.network.driver.mtu</td>
+<td align="center">mtu</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><em>None</em> disables network capabilities to containers; in other words, it's attached to itself.</li>
+<li><em>Host</em> adds a container on the host’s network stack.</li>
+</ul>
+<p>Let's configure the docker0 bridge. As we said previously, this is pretty much configured
+at installation time. But let's take a look to the network environment before doing it.</p>
+<pre><code>    $iptables -L -v &amp;&amp; sudo iptables -t nat -L -v
+    Chain INPUT (policy ACCEPT 0 packets, 0 bytes)
+     pkts bytes target     prot opt in     out     source               destination
+
+    Chain FORWARD (policy ACCEPT 0 packets, 0 bytes)
+     pkts bytes target     prot opt in     out     source               destination
+
+    Chain OUTPUT (policy ACCEPT 0 packets, 0 bytes)
+     pkts bytes target     prot opt in     out     source               destination
+    Chain PREROUTING (policy ACCEPT 0 packets, 0 bytes)
+     pkts bytes target     prot opt in     out     source               destination
+
+    Chain INPUT (policy ACCEPT 0 packets, 0 bytes)
+     pkts bytes target     prot opt in     out     source               destination
+
+    Chain OUTPUT (policy ACCEPT 0 packets, 0 bytes)
+     pkts bytes target     prot opt in     out     source               destination
+
+    Chain POSTROUTING (policy ACCEPT 0 packets, 0 bytes)
+     pkts bytes target     prot opt in     out     source               destination
+
+    $ip addr show
+    1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1
+        link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+        inet 127.0.0.1/8 scope host lo
+           valid_lft forever preferred_lft forever
+        inet6 ::1/128 scope host
+           valid_lft forever preferred_lft forever
+    2: ens3: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
+        link/ether 52:54:00:43:8b:a8 brd ff:ff:ff:ff:ff:ff
+        inet 192.168.122.194/24 brd 192.168.122.255 scope global ens3
+           valid_lft forever preferred_lft forever
+        inet6 fe80::5054:ff:fe43:8ba8/64 scope link
+           valid_lft forever preferred_lft forever
+
+    $ip route show
+    default via 192.168.122.1 dev ens3
+    192.168.122.0/24 dev ens3  proto kernel  scope link  src 192.168.122.194
+</code></pre>
+<p>Iptables is accepting everything with no rules defined. Also, the routing table only
+shows the directly connected interface and the default gateway rule. Last, there's only
+two interfaces.
+Let's install docker.</p>
+<pre><code>    $curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+    $sudo add-apt-repository &quot;deb [arch=amd64] https://download.docker.com/linux/ubuntu  $(lsb_release -cs) stable&quot;
+    $sudo apt update &amp;&amp; sudo apt install docker-ce -y
+
+    # Output might be slightly different from yours
+    $sudo iptables -L -v &amp;&amp; sudo iptables -t nat -L -v
+    Chain FORWARD (policy DROP 0 packets, 0 bytes)
+     pkts bytes target     prot opt in     out     source               destination
+        0     0 DOCKER-ISOLATION  all  --  any    any     anywhere             anywhere
+        0     0 DOCKER     all  --  any    docker0  anywhere             anywhere
+        0     0 ACCEPT     all  --  any    docker0  anywhere             anywhere             ctstate RELATED,ESTABLISHED
+        0     0 ACCEPT     all  --  docker0 !docker0  anywhere             anywhere
+        0     0 ACCEPT     all  --  docker0 docker0  anywhere             anywhere
+
+    Chain DOCKER (1 references)
+     pkts bytes target     prot opt in     out     source               destination
+
+    Chain DOCKER-ISOLATION (1 references)
+     pkts bytes target     prot opt in     out     source               destination
+        0     0 RETURN     all  --  any    any     anywhere             anywhere
+
+
+    Chain PREROUTING (policy ACCEPT 0 packets, 0 bytes)
+     pkts bytes target     prot opt in     out     source               destination
+        0     0 DOCKER     all  --  any    any     anywhere             anywhere             ADDRTYPE match dst-type LOCAL
+
+    Chain OUTPUT (policy ACCEPT 2 packets, 137 bytes)
+     pkts bytes target     prot opt in     out     source               destination
+        0     0 DOCKER     all  --  any    any     anywhere            !localhost/8          ADDRTYPE match dst-type LOCAL
+
+    Chain POSTROUTING (policy ACCEPT 2 packets, 137 bytes)
+     pkts bytes target     prot opt in     out     source               destination
+        0     0 MASQUERADE  all  --  any    !docker0  172.17.0.0/16        anywhere
+
+    Chain DOCKER (2 references)
+     pkts bytes target     prot opt in     out     source               destination
+        0     0 RETURN     all  --  docker0 any     anywhere             anywhere
+
+    $ip addr show
+    3: docker0: &lt;NO-CARRIER,BROADCAST,MULTICAST,UP&gt; mtu 1500 qdisc noqueue state DOWN group default
+        link/ether 02:42:be:33:09:ba brd ff:ff:ff:ff:ff:ff
+        inet 172.17.0.1/16 scope global docker0
+           valid_lft forever preferred_lft forever
+
+    $ip route show
+    172.17.0.0/16 dev docker0  proto kernel  scope link  src 172.17.0.1 linkdown
+</code></pre>
+<p>First of all, Docker enables ip forwarding at the kernel level(<code>echo 1 &gt; /proc/sys/net/ipv4/ip_forward</code>)
+to have  communication between internal and external hosts.In addition, it creates some
+firewall rules for docker isolation to <code>DROP</code> or <code>ACCEPT</code> communication between
+containers and other hosts throught the <code>FORWARD</code> chain.
+It's better to check <a href="https://docs.docker.com/engine/userguide/networking/default_network/container-communication/">this official explanation</a>
+from the docker site about container communication.</p>
+<p>Let's disable inter-container communication (<code>--icc=false</code>) and create some containers.</p>
+<pre><code>    $sudo systemctl stop docker
+    $sudo dockerd --icc=false &amp;
+
+    $docker run -itd --name=c_in_bridge busybox
+    $docker run -itd --name=c_in_internal busybox
+    $docker run -itd --name=c_in_net busybox
+    $docker run -itd --name=web_in_all httpd:2.4
+
+    # Inspecting iptables and interfaces after docker is installed
+    # Output has been cut
+    $sudo iptables -L FORWARD -v
+
+    $sudo iptables -t nat -L POSTROUTING
+    Chain POSTROUTING (policy ACCEPT 72 packets, 4997 bytes)
+     pkts bytes target     prot opt in     out     source               destination
+        0     0 MASQUERADE  all  --  any    !docker0  172.17.0.0/16        anywhere
+
+    $ sudo iptables -L FORWARD -v
+    Chain FORWARD (policy DROP 0 packets, 0 bytes)
+     pkts bytes target     prot opt in     out     source               destination
+        0     0 DOCKER-ISOLATION  all  --  any    any     anywhere             anywhere
+        0     0 DOCKER     all  --  any    docker0  anywhere             anywhere
+        0     0 ACCEPT     all  --  any    docker0  anywhere             anywhere             ctstate RELATED,ESTABLISHED
+        0     0 ACCEPT     all  --  docker0 !docker0  anywhere             anywhere
+        0     0 DROP       all  --  docker0 docker0  anywhere             anywhere
+
+    $ip addr show
+    5: vethe4f578b@if4: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue master docker0 state UP group default
+        link/ether 26:1f:8b:1a:7b:82 brd ff:ff:ff:ff:ff:ff link-netnsid 0
+        inet6 fe80::241f:8bff:fe1a:7b82/64 scope link
+           valid_lft forever preferred_lft foreve
+    7: veth896d794@if6: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue master docker0 state UP group default
+        link/ether 3e:63:f6:3f:0e:62 brd ff:ff:ff:ff:ff:ff link-netnsid 1
+        inet6 fe80::3c63:f6ff:fe3f:e62/64 scope link
+           valid_lft forever preferred_lft forever
+    9: vethf085771@if8: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue master docker0 state UP group default
+        link/ether a6:c1:31:d7:f1:22 brd ff:ff:ff:ff:ff:ff link-netnsid 2
+        inet6 fe80::a4c1:31ff:fed7:f122/64 scope link
+           valid_lft forever preferred_lft forever
+    11: veth690dd4c@if10: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue master docker0 state UP group default
+        link/ether 6e:9a:80:a5:01:fc brd ff:ff:ff:ff:ff:ff link-netnsid 3
+        inet6 fe80::6c9a:80ff:fea5:1fc/64 scope link
+           valid_lft forever preferred_lft forever
+</code></pre>
+<p>Each time a container is run with a published port(<code>web_in_all</code>), docker inserts
+a <code>POSTROUTING</code> rule to nat the pusblished ports from the host to the container.
+Also, notice that the rule to communicate between container has been changed from DROP to ACCEPT
+when docker is run with inter-container communication disabled. Furthermore, we see
+four new virtual interfaces, one for each container. Each interface is connected
+to the docker0 bridge in the global namepsace, and the other end is connected to
+the container network namespace; however, <code>vethXXXXX</code> doesn't say anything of
+which interface belongs to which container on the host. Nonetheless, the following one liner can
+help you identifying the interface index, because each veth pair is created sequentially.</p>
+<pre><code>    $DOCKER_ID=`docker ps -aqf &quot;name=web_in_all&quot;`
+    $docker inspect --format='{{.State.Pid}}' $(DOCKER_ID) | xargs -I '{}' sudo nsenter -t '{}' -n ethtool -S eth0
+    NIC statistics:
+         peer_ifindex: 11
+</code></pre>
+<p>We can verify communication in <code>docker0</code></p>
+<pre><code>    $ docker inspect -f '{{.NetworkSettings.Networks.bridge.IPAddress}}' c_in_bridge
+    172.17.0.3
+
+    $ docker inspect -f '{{.NetworkSettings.Networks.bridge.IPAddress}}' web_in_all
+    172.17.0.2
+
+    $ docker exec c_in_bridge ping 172.17.0.1 -c 2
+    PING 172.17.0.1 (172.17.0.1): 56 data bytes
+    64 bytes from 172.17.0.1: seq=0 ttl=64 time=0.604 ms
+    64 bytes from 172.17.0.1: seq=1 ttl=64 time=0.367 ms
+
+    $ docker exec c_in_bridge ping 172.17.0.2 -c 2
+    PING 172.17.0.2 (172.17.0.2): 56 data bytes
+    --- 172.17.0.2 ping statistics ---
+    2 packets transmitted, 0 packets received, 100% packet loss
+
+    $ docker exec c_in_bridge ping web_in_all -c 2
+    ping: bad address 'web_in_all'
+
+    $ docker exec c_in_bridge ping example.com -c 2
+    PING example.com (93.184.216.34): 56 data bytes
+    64 bytes from 93.184.216.34: seq=0 ttl=52 time=25.110 ms
+    64 bytes from 93.184.216.34: seq=1 ttl=52 time=31.700 ms
+</code></pre>
+<p>As <code>docker0</code> is run with inter-container communication disabled, there's no communication
+between containers. Also, there's no dns, so no resolution using other container names.
+Communication to the outside world is permited.</p>
+<h2 id="user-defined-networks">User-defined Networks</h2>
+<blockquote>
+<p>In this doc we are not explaining about docker swarm(vxlan) at all. Please
+refer to the <a href="https://docs.docker.com/engine/userguide/networking/get-started-overlay/">official documentation</a>
+to learn more.</p>
+</blockquote>
+<p>Docker provides something called user-defined networks which are Linux bridges with
+DNS resolution without having to configure your own DNS server. It has several
+network drivers: bridge, overlay, macvlan; and supports network plugins to build
+your own network driver. Also, It permits to connect several containers to
+different networks(including the docker0 network). As you can connect a container
+to several networks, its external connectivity is provided via the first
+non-internal network, in lexical order.</p>
+<blockquote>
+<p>Docker has an option for linking containers in <code>docker0</code>, with user-defined
+network I don't see a reason to keep using it. Also, linking is not supported
+in user-defined networks.</p>
+</blockquote>
+<p>Now, let's create the docker networks.</p>
+<pre><code>    $docker network create -o &quot;com.docker.network.kbridge.enable_icc=false&quot; --internal demo_internal
+
+    $docker network create demo_net
+
+    $docker network ls
+    NETWORK ID          NAME                DRIVER              SCOPE
+    77283fff31b2        bridge              bridge              local
+    22abcb2ef140        demo_internal       bridge              local
+    119bb8423775        demo_net            bridge              local
+    e2dfddfecaaa        host                host                local
+    11899b8b3162        none                null                local
+
+    # Inspecting iptables after creating the networks 
+    # Output has been cut
+    $ sudo iptables -L -v
+    Chain FORWARD (policy DROP 0 packets, 0 bytes)
+     pkts bytes target     prot opt in     out     source               destination
+        0     0 DOCKER-ISOLATION  all  --  any    any     anywhere             anywhere
+        0     0 DOCKER     all  --  any    docker0  anywhere             anywhere
+        0     0 ACCEPT     all  --  any    docker0  anywhere             anywhere             ctstate RELATED,ESTABLISHED
+        0     0 ACCEPT     all  --  docker0 !docker0  anywhere             anywhere
+        0     0 DOCKER     all  --  any    br-119bb8423775  anywhere             anywhere
+        0     0 ACCEPT     all  --  any    br-119bb8423775  anywhere             anywhere             ctstate RELATED,ESTABLISHED
+        0     0 ACCEPT     all  --  br-119bb8423775 !br-119bb8423775  anywhere             anywhere
+        0     0 ACCEPT     all  --  br-119bb8423775 br-119bb8423775  anywhere             anywhere
+        0     0 ACCEPT     all  --  br-22abcb2ef140 br-22abcb2ef140  anywhere             anywhere
+        0     0 DROP       all  --  docker0 docker0  anywhere             anywhere
+
+    Chain OUTPUT (policy ACCEPT 158 packets, 19432 bytes)
+     pkts bytes target     prot opt in     out     source               destination
+
+    Chain DOCKER (2 references)
+     pkts bytes target     prot opt in     out     source               destination
+
+    Chain DOCKER-ISOLATION (1 references)
+     pkts bytes target     prot opt in     out     source               destination
+        0     0 DROP       all  --  br-119bb8423775 docker0  anywhere             anywhere
+        0     0 DROP       all  --  docker0 br-119bb8423775  anywhere             anywhere
+        0     0 DROP       all  --  any    br-22abcb2ef140 !172.18.0.0/16        anywhere
+        0     0 DROP       all  --  br-22abcb2ef140 any     anywhere            !172.18.0.0/16
+        0     0 RETURN     all  --  any    any     anywhere             anywhere
+
+    $sudo iptables -t nat -L -v
+    Chain POSTROUTING (policy ACCEPT 2 packets, 138 bytes)
+     pkts bytes target     prot opt in     out     source               destination
+        0     0 MASQUERADE  all  --  any    !br-119bb8423775  172.19.0.0/16        anywhere
+        0     0 MASQUERADE  all  --  any    !docker0  172.17.0.0/16        anywhere
+
+    Chain DOCKER (2 references)
+     pkts bytes target     prot opt in     out     source               destination
+        0     0 RETURN     all  --  br-119bb8423775 any     anywhere             anywhere
+        0     0 RETURN     all  --  docker0 any     anywhere             anywhere
+</code></pre>
+<p><code>br-22abcb2ef140</code> is the bridge for <code>demo_internal</code> in my environment. The bridge
+name follows the syntax <code>br-$(network-id)</code>. The network id can be obtained by
+<code>docker network ls</code> command or <code>docker network inspect [network-name]</code>. The same applies
+for <code>demo_net</code> with its bridge <code>br-119bb8423775</code>.
+We can see that two new networks has been created. Also, there's one new rule in
+the <code>FORWARD</code> chain, and there are two new rules in the <code>DOCKER-ISOLATION</code> chain.
+In addition, there's one rule added in the <code>POSTROUTING</code> chain and one in the <code>DOCKER</code>(PREROUTING) chain
+for <code>demo_net</code>. This mean that <code>demo_net</code> has NAT capabilities to communicate to the outside world
+,but <code>demo_internal</code> has not. <code>DOCKER-ISOLATION</code> chain isolates completely
+the <code>demo_internal</code> network, but for <code>docker_net</code> means there's no communication to the docker0 bridge. In the
+FORWARD chain we see that both networks have accepted connections to communicate
+between containers. In the case of <code>demo_net</code> it also has communication to the
+outside world.</p>
+<p>We can attach/dettach running containers to several networks. At this moment, both
+networks are down, because there's now device connected to the bridge.</p>
+<pre><code>    $ip link show
+    13: br-22abcb2ef140: &lt;NO-CARRIER,BROADCAST,MULTICAST,UP&gt; mtu 1500 qdisc noqueue state DOWN mode DEFAULT group default
+        link/ether 02:42:0b:7a:5f:f6 brd ff:ff:ff:ff:ff:ff
+    15: br-119bb8423775: &lt;NO-CARRIER,BROADCAST,MULTICAST,UP&gt; mtu 1500 qdisc noqueue state DOWN mode DEFAULT group default
+        link/ether 02:42:89:3b:e5:2e brd ff:ff:ff:ff:ff:ff
+</code></pre>
+<p>To connect the containers to the different networks use <code>docker network connect [network_name] [container]</code>.</p>
+<pre><code>    $docker network connect bridge web_in_all
+    $docker network connect demo_internal web_in_all
+    $docker network connect demo_internal c_in_internal
+    $docker network connect demo_net web_in_all
+    $docker network connect demo_net c_in_net
+    $docker network disconnect bridge c_in_internal
+    $docker network disconnect bridge c_in_internal
+    
+    # Inspecting the networks
+    # Output has been cut
+    $docker network inspect bridge
+    [
+        {
+            &quot;Name&quot;: &quot;bridge&quot;,
+            &quot;Id&quot;: &quot;b04143660337bc477e4d2b420f3a799340ae2a40c9585ceb81410bf630b6a49c&quot;,
+            &quot;Driver&quot;: &quot;bridge&quot;,
+            &quot;Internal&quot;: false,
+            &quot;Containers&quot;: {
+                &quot;270dca5b1f6715487b9b8471bdd2c1490c89defb7f311f3d5ccbd03e59687c5e&quot;: {
+                    &quot;Name&quot;: &quot;web_in_all&quot;,
+                    &quot;EndpointID&quot;: &quot;32147fecafb40f926d3193f4a0d61e628530b71c7c2006523e70a27d36fddfd1&quot;,
+                    &quot;MacAddress&quot;: &quot;02:42:ac:11:00:02&quot;,
+                    &quot;IPv4Address&quot;: &quot;172.17.0.2/16&quot;,
+                    &quot;IPv6Address&quot;: &quot;&quot;
+                },
+                &quot;81533d0311f8d634ce84f6da6a13d0745c14a6c13150750f6563674584259175&quot;: {
+                    &quot;Name&quot;: &quot;c_in_bridge&quot;,
+                    &quot;EndpointID&quot;: &quot;d459ffd8177b85b5de687f5fd48e2a1b8c8b2c991af213b24f23532f64bd3ee6&quot;,
+                    &quot;MacAddress&quot;: &quot;02:42:ac:11:00:05&quot;,
+                    &quot;IPv4Address&quot;: &quot;172.17.0.5/16&quot;,
+                    &quot;IPv6Address&quot;: &quot;&quot;
+                },
+            },
+        }
+    ]
+
+    $ docker network inspect demo_internal
+    [
+        {
+            &quot;Name&quot;: &quot;demo_internal&quot;,
+            &quot;Id&quot;: &quot;22abcb2ef14008d075290e75bf4f25463c5849617cc736c8b0196de0cabcb86f&quot;,
+            &quot;Driver&quot;: &quot;bridge&quot;,
+            &quot;Internal&quot;: true,
+            &quot;Attachable&quot;: false,
+            &quot;Containers&quot;: {
+                &quot;270dca5b1f6715487b9b8471bdd2c1490c89defb7f311f3d5ccbd03e59687c5e&quot;: {
+                    &quot;Name&quot;: &quot;web_in_all&quot;,
+                    &quot;EndpointID&quot;: &quot;9e22fbea0191ee648f4f4553d995fc3d10e20d821200efd01b248c77c9592c45&quot;,
+                    &quot;MacAddress&quot;: &quot;02:42:ac:12:00:02&quot;,
+                    &quot;IPv4Address&quot;: &quot;172.18.0.2/16&quot;,
+                    &quot;IPv6Address&quot;: &quot;&quot;
+                },
+                &quot;56a0bb976ced986f3b7889f5dbcc5f5a3449f61b858b1857103b5c2287b5c40e&quot;: {
+                    &quot;Name&quot;: &quot;c_in_internal&quot;,
+                    &quot;EndpointID&quot;: &quot;1a8300e23320560e64bf984b08e98810427a88ae9b25d1c1bccce86876e3ddad&quot;,
+                    &quot;MacAddress&quot;: &quot;02:42:ac:12:00:03&quot;,
+                    &quot;IPv4Address&quot;: &quot;172.18.0.3/16&quot;,
+                    &quot;IPv6Address&quot;: &quot;&quot;
+                }
+            },
+            &quot;Options&quot;: {
+                &quot;com.docker.network.kbridge.enable_icc&quot;: &quot;false&quot;
+            },
+        }
+    ]
+
+    $ docker network inspect demo_net
+    [
+        {
+            &quot;Name&quot;: &quot;demo_net&quot;,
+            &quot;Id&quot;: &quot;119bb8423775647a339c3c4cfbb29f30c4c99ad1e66a0606b2799c7c6bf840a4&quot;,
+            &quot;Internal&quot;: false,
+            &quot;Containers&quot;: {
+                &quot;270dca5b1f6715487b9b8471bdd2c1490c89defb7f311f3d5ccbd03e59687c5e&quot;: {
+                    &quot;Name&quot;: &quot;web_in_all&quot;,
+                    &quot;EndpointID&quot;: &quot;4c69c773b612af883268b91037f2bc2280c4f01f8bb01f86b06635b479595e1e&quot;,
+                    &quot;MacAddress&quot;: &quot;02:42:ac:13:00:02&quot;,
+                    &quot;IPv4Address&quot;: &quot;172.19.0.2/16&quot;,
+                    &quot;IPv6Address&quot;: &quot;&quot;
+                },
+                &quot;a9294f31b168363cd99e3ec1a4b5a125d06dabfa2422f84fcc66b57033bc556c&quot;: {
+                    &quot;Name&quot;: &quot;c_in_net&quot;,
+                    &quot;EndpointID&quot;: &quot;b651d1ba56524e10302a716930e6da42b1997bdd7b371a276dff6cd2fc5b5ca3&quot;,
+                    &quot;MacAddress&quot;: &quot;02:42:ac:13:00:03&quot;,
+                    &quot;IPv4Address&quot;: &quot;172.19.0.3/16&quot;,
+                    &quot;IPv6Address&quot;: &quot;&quot;
+                }
+            },
+            &quot;Options&quot;: {},
+        }
+    ]
+</code></pre>
+<p><code>web_in_all</code> is the only container connected to all the networks.</p>
+<pre><code>    $ ip route show
+    default via 192.168.122.1 dev ens3
+    172.17.0.0/16 dev docker0  proto kernel  scope link  src 172.17.0.1
+    172.18.0.0/16 dev br-22abcb2ef140  proto kernel  scope link  src 172.18.0.1
+    172.19.0.0/16 dev br-119bb8423775  proto kernel  scope link  src 172.19.0.1
+    192.168.122.0/24 dev ens3  proto kernel  scope link  src 192.168.122.194
+
+    $ ip link show
+    13: br-22abcb2ef140: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue state UP mode DEFAULT group default
+        link/ether 02:42:0b:7a:5f:f6 brd ff:ff:ff:ff:ff:ff
+    15: br-119bb8423775: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue state UP mode DEFAULT group default
+        link/ether 02:42:89:3b:e5:2e brd ff:ff:ff:ff:ff:ff
+</code></pre>
+<p>Both bridges now are up after we connect containers to them. There are also
+two rules added to the routing table as directly connected.</p>
+<pre><code>    # Exploring demo_internal
+    $ docker inspect -f '{{.NetworkSettings.Networks.demo_internal.IPAddress}}' web_in_all
+    172.18.0.2
+
+    $ docker inspect -f '{{.NetworkSettings.Networks.demo_internal.IPAddress}}' c_in_internal
+    172.18.0.3
+
+    $ docker exec c_in_internal ping 172.18.0.1 -c 2
+    PING 172.18.0.1 (172.18.0.1): 56 data bytes
+    64 bytes from 172.18.0.1: seq=0 ttl=64 time=0.111 ms
+    64 bytes from 172.18.0.1: seq=1 ttl=64 time=0.295 ms
+
+    $ docker exec c_in_internal ping 172.18.0.3 -c 2
+    PING 172.18.0.3 (172.18.0.3): 56 data bytes
+    64 bytes from 172.18.0.3: seq=0 ttl=64 time=0.102 ms
+    64 bytes from 172.18.0.3: seq=1 ttl=64 time=0.272 ms
+
+    $ docker exec c_in_internal ping web_in_all -c 2
+    PING web_in_all (172.18.0.2): 56 data bytes
+    64 bytes from 172.18.0.2: seq=0 ttl=64 time=0.099 ms
+    64 bytes from 172.18.0.2: seq=1 ttl=64 time=0.618 ms
+
+    $ docker exec c_in_internal ping example.com -c 2
+    ping: bad address 'example.com'
+</code></pre>
+<p>Verifying connectivity in the demo_internal network we notice connection between
+container even though inter-container communication has been disabled. NICE BUG YOU
+HAVE THERE DOCKER. In addition, in a user-defined network we can use the container
+name just fine to communicate between containers. As <code>demo_internal</code> is an internal
+network, there's no connection to the outside world.</p>
+<pre><code>    # Exploring demo_internal
+    $ docker inspect -f '{{.NetworkSettings.Networks.demo_net.IPAddress}}' c_in_net
+    172.19.0.3
+
+    $ docker inspect -f '{{.NetworkSettings.Networks.demo_net.IPAddress}}' web_in_all
+    172.19.0.2
+
+    $ docker exec c_in_net ping 172.19.0.1 -c 2
+    PING 172.19.0.1 (172.19.0.1): 56 data bytes
+    64 bytes from 172.19.0.1: seq=0 ttl=64 time=0.115 ms
+    64 bytes from 172.19.0.1: seq=1 ttl=64 time=0.269 ms
+
+    $ docker exec c_in_net ping 172.19.0.2 -c 2
+    PING 172.19.0.2 (172.19.0.2): 56 data bytes
+    64 bytes from 172.19.0.2: seq=0 ttl=64 time=0.105 ms
+    64 bytes from 172.19.0.2: seq=1 ttl=64 time=0.374 ms
+
+    $ docker exec c_in_net ping web_in_all -c 2
+    PING web_in_all (172.19.0.2): 56 data bytes
+    64 bytes from 172.19.0.2: seq=0 ttl=64 time=0.059 ms
+    64 bytes from 172.19.0.2: seq=1 ttl=64 time=0.276 ms
+
+    $ docker exec c_in_net ping example.com -c 2
+    PING example.com (93.184.216.34): 56 data bytes
+    64 bytes from 93.184.216.34: seq=0 ttl=52 time=25.192 ms
+    64 bytes from 93.184.216.34: seq=1 ttl=52 time=29.856 ms
+</code></pre>
+<p>Two main differences of <code>demo_net</code> between <code>demo_internal</code>. First, it has inter-container
+communication enabled(so, no bug). Second, <code>demo_net</code> has connection to the outside world.</p>
+<h2 id="network-namespaces">Network Namespaces</h2>
+<p>Provides isolation of the system resources associated with networking: network
+devices, IPv4 and IPv6 protocol stacks, IP routing tables, firewalls,
+the /proc/net directory, the /sys/class/net directory, port numbers (sockets),
+and so on. This means that each network namespace has its own networking stack.</p>
+<p>It uses a virtual device(veth) pair to create a tunnel
+for communication between namespaces. It always comes in pair, with one end in
+the root namespace and the other end in a namespace.</p>
+<p>The device is created in whatever namespace is current in.  If a device does not
+belong to the current namespace, it becomes invisible.</p>
+<p>In the case of docker containers, each container has their own network stack.
+The network namespace is located in /proc/$pid/ns/ for each process:</p>
+<pre><code>    $DOCKER_ID=`docker ps -aqf &quot;name=web_in_all&quot;`
+    /proc/`docker inspect --format='{{.State.Pid}}' ${DOCKER_ID}`/ns/net
+</code></pre>
+<p>To configure a network namespace by hand we'll use the <code>ip</code> command.</p>
+<pre><code>    $ sudo ip netns add demo_ns
+
+    $ sudo ip netns ls
+    demo_ns
+
+    $mount | grep demo_ns
+    nsfs on /run/netns/demo_ns type nsfs (rw)
+    nsfs on /run/netns/demo_ns type nsfs (rw)
+</code></pre>
+<p>We have created and listed a new namespace; however, <code>ip</code> mounts a a virtual
+filesystem named nsfs to keep <code>demo_ns</code> alive; otherwise, the namespace would have ended
+when <code>ip</code> command terminated executing without mounting the network namespace.</p>
+<p>Let's create a veth pair device and send one of them to <code>demo_ns</code></p>
+<pre><code>    $ sudo ip link add v-eth0 type veth peer name v-peer0
+    $ip link show
+    18: v-peer0@v-eth0: &lt;BROADCAST,MULTICAST,M-DOWN&gt; mtu 1500 qdisc noop state DOWN mode DEFAULT group default qlen 1000
+        link/ether 26:46:1c:69:75:42 brd ff:ff:ff:ff:ff:ff
+    19: v-eth0@v-peer0: &lt;BROADCAST,MULTICAST,M-DOWN&gt; mtu 1500 qdisc noop state DOWN mode DEFAULT group default qlen 1000
+        link/ether aa:92:de:a0:77:a8 brd ff:ff:ff:ff:ff:ff
+
+    $sudo ip link set v-peer0 netns demo_ns
+    $ip link show
+    19: v-eth0@if18: &lt;BROADCAST,MULTICAST&gt; mtu 1500 qdisc noop state DOWN mode DEFAULT group default qlen 1000
+        link/ether aa:92:de:a0:77:a8 brd ff:ff:ff:ff:ff:ff link-netnsid 4
+</code></pre>
+<p>Notice that only <code>v-eth0</code> remains in the global namespace.</p>
+<pre><code>    $ sudo ip addr add 10.100.0.1/24 dev v-eth0
+    $ sudo ip link set v-eth0 up
+    $ sudo ip netns exec demo_ns ip addr add 10.100.0.2/24 dev v-peer0
+    $ sudo ip netns exec demo_ns ip link set v-peer0 up
+    $ sudo ip netns exec demo_ns ip link set lo up
+    $ sudo ip netns exec demo_ns ip addr show
+    1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1
+        link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+        inet 127.0.0.1/8 scope host lo
+           valid_lft forever preferred_lft forever
+        inet6 ::1/128 scope host
+           valid_lft forever preferred_lft forever
+    18: v-peer0@if19: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue state UP group default qlen 1000
+        link/ether 26:46:1c:69:75:42 brd ff:ff:ff:ff:ff:ff link-netnsid 0
+        inet 10.100.2.0/24 scope global v-peer0
+           valid_lft forever preferred_lft forever
+        inet6 fe80::2446:1cff:fe69:7542/64 scope link
+           valid_lft forever preferred_lft forever
+    $ip addr show v-eth0
+    19: v-eth0@if18: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue state UP group default qlen 1000
+        link/ether aa:92:de:a0:77:a8 brd ff:ff:ff:ff:ff:ff link-netnsid 4
+        inet 10.100.0.1/24 scope global v-eth0
+           valid_lft forever preferred_lft forever
+        inet6 fe80::a892:deff:fea0:77a8/64 scope link
+           valid_lft forever preferred_lft forever
+    $ ip route
+    default via 192.168.122.1 dev ens3
+    10.100.0.0/24 dev v-eth0  proto kernel  scope link  src 10.100.0.1
+</code></pre>
+<p><code>ip netns exec [net_ns]</code> permits executing commands inside a network namespace.
+In this case we have configure <code>v-eth0</code> in the global namespace and <code>v-peer0</code> inside
+<code>demo_ns</code>. Also notice that the host creates a route for 10.100.0.0, because it's
+directed connected device. Iptables has no changes at all.</p>
+<pre><code>    $ ping 10.100.0.2 -c 2
+    PING 10.100.0.2 (10.100.0.2) 56(84) bytes of data.
+    64 bytes from 10.100.0.2: icmp_seq=1 ttl=64 time=0.094 ms
+    64 bytes from 10.100.0.2: icmp_seq=2 ttl=64 time=0.057 ms
+
+    $ sudo ip netns exec demo_ns ping 10.100.0.1 -c 2
+    PING 10.100.0.1 (10.100.0.1) 56(84) bytes of data.
+    64 bytes from 10.100.0.1: icmp_seq=1 ttl=64 time=0.057 ms
+    64 bytes from 10.100.0.1: icmp_seq=2 ttl=64 time=0.064 ms
+</code></pre>
+<p>We have verified there's connection inside the tunnel.</p>
+<h3 id="lets-get-weird">Let's get weird</h3>
+<p>First of all, we are going to link <code>web_in_all</code> network namespace to <code>/var/run/netns</code>,
+so it can be managed by the <code>ip</code> command.</p>
+<pre><code>    $DOCKER_ID=`docker ps -aqf &quot;name=web_in_all&quot;`
+    $sudo ln -s /proc/`docker inspect --format='{{.State.Pid}}' ${DOCKER_ID}`/ns/net /var/run/netns/${DOCKER_ID}
+    $sudo ip netns ls
+    270dca5b1f67 (id: 0)
+    demo_ns (id: 4)
+</code></pre>
+<p>Then, we are going to install and configure a Linux bridge named <code>nsbr0</code>. This
+bridge will have two veth connected to it. One is a new veth pair which one end is
+going to be in the <code>demo_ns</code> network namespace. The other veth pair will be a
+tunnel connected  to the <code>web_in_all</code> network namespace.</p>
+<pre><code>    $sudo apt install bridge-utils -y
+
+    $sudo ip link add v-eth1 type veth peer name v-peer-1
+    $sudo ip link add v-ethc type veth peer name v-peer-c
+
+    $sudo brctl addbr nsbr0
+    $ sudo brctl addif nsbr0 v-eth1
+    $ sudo brctl addif nsbr0 v-ethc
+
+    $ip link show
+    20: nsbr0: &lt;BROADCAST,MULTICAST&gt; mtu 1500 qdisc noop state DOWN mode DEFAULT group default qlen 1000
+        link/ether 26:bc:6a:17:76:9a brd ff:ff:ff:ff:ff:ff
+    23: v-peer-1@v-eth1: &lt;BROADCAST,MULTICAST,M-DOWN&gt; mtu 1500 qdisc noop state DOWN mode DEFAULT group default qlen 1000
+        link/ether 6a:56:f9:8a:22:c2 brd ff:ff:ff:ff:ff:ff
+    24: v-eth1@v-peer-1: &lt;BROADCAST,MULTICAST,M-DOWN&gt; mtu 1500 qdisc noop master nsbr0 state DOWN mode DEFAULT group default qlen 1000
+        link/ether b2:9f:3c:ba:0c:97 brd ff:ff:ff:ff:ff:ff
+    25: v-peer-c@v-ethc: &lt;BROADCAST,MULTICAST,M-DOWN&gt; mtu 1500 qdisc noop state DOWN mode DEFAULT group default qlen 1000
+        link/ether a6:4c:ea:4e:f0:a1 brd ff:ff:ff:ff:ff:ff
+    26: v-ethc@v-peer-c: &lt;BROADCAST,MULTICAST,M-DOWN&gt; mtu 1500 qdisc noop master nsbr0 state DOWN mode DEFAULT group default qlen 1000
+
+    $sudo ip link set v-peer-c netns ${DOCKER_ID}
+    $sudo ip link set v-peer-1 netns demo_ns
+    $sudo ip link set v-eth1 up
+    $sudo ip link set v-ethc up
+    $sudo ip link set nsbr0 up
+    $sudo ip netns exec ${DOCKER_ID} ip link set v-peer-c up
+    $sudo ip netns exec ${DOCKER_ID} ip addr add 10.200.0.3/24 dev v-peer-c
+    $sudo ip addr add 10.200.0.1/24 dev nsbr0
+    $sudo ip netns exec demo_ns ip addr add 10.200.0.2/24 dev v-peer-1
+    $sudo ip netns exec demo_ns ip link set v-peer-1 up
+</code></pre>
+<p>After configuring our new bridge and veths devices. Let's explore how's the view
+in each network namespace:</p>
+<pre><code>    $ip link show 
+    20: nsbr0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue state UP mode DEFAULT group default qlen 1000
+        link/ether 26:bc:6a:17:76:9a brd ff:ff:ff:ff:ff:ff
+    24: v-eth1@if23: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue master nsbr0 state UP mode DEFAULT group default qlen 1000
+        link/ether b2:9f:3c:ba:0c:97 brd ff:ff:ff:ff:ff:ff link-netnsid 4
+    26: v-ethc@if25: &lt;BROADCAST,MULTICAST&gt; mtu 1500 qdisc noqueue master nsbr0 state UP mode DEFAULT group default qlen 1000
+        link/ether 26:bc:6a:17:76:9a brd ff:ff:ff:ff:ff:ff link-netnsid 0
+
+    $ ip route
+    10.200.0.0/24 dev nsbr0  proto kernel  scope link  src 10.200.0.1
+</code></pre>
+<p>Now we have <code>v-eth1</code> and <code>v-ethc</code> connected to <code>nsbr0</code>. and ip route shows a new route
+for <code>10.200.0.1</code>.</p>
+<pre><code>    $ sudo ip netns exec ${DOCKER_ID} ip link show
+    1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1
+        link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    6: eth0@if7: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue state UP mode DEFAULT group default
+        link/ether 02:42:ac:11:00:02 brd ff:ff:ff:ff:ff:ff link-netnsid 0
+    8: eth1@if9: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue state UP mode DEFAULT group default
+        link/ether 02:42:ac:12:00:02 brd ff:ff:ff:ff:ff:ff link-netnsid 0
+    10: eth2@if11: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue state UP mode DEFAULT group default
+        link/ether 02:42:ac:13:00:02 brd ff:ff:ff:ff:ff:ff link-netnsid 0
+    25: v-peer-c@if26: &lt;NO-CARRIER,BROADCAST,MULTICAST,UP&gt; mtu 1500 qdisc noqueue state UP mode DEFAULT group default qlen 1000
+        link/ether a6:4c:ea:4e:f0:a1 brd ff:ff:ff:ff:ff:ff link-netnsid 0
+
+    $ sudo ip netns exec ${DOCKER_ID} ip route
+    default via 172.17.0.1 dev eth0
+    10.200.0.0/24 dev v-peer-c  proto kernel  scope link  src 10.200.0.3 linkdown
+</code></pre>
+<p><code>web_in_all</code> has a new veth and a new route for 10.200.0.0.</p>
+<pre><code>    $sudo iptables -t nat -A POSTROUTING -s 10.200.0.0/24 -o ens3 -j MASQUERADE
+    $sudo iptables -A FORWARD -o nsbr0 -j ACCEPT
+    $sudo iptables -A FORWARD -i nsbr0 -j ACCEPT
+    $sudo ip netns exec demo_ns ip route add default via 10.200.0.1
+
+    $ sudo ip netns exec demo_ns  ip link show
+    1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1
+        link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    18: v-peer0@if19: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue state UP mode DEFAULT group default qlen 1000
+        link/ether 26:46:1c:69:75:42 brd ff:ff:ff:ff:ff:ff link-netnsid 0
+    23: v-peer-1@if24: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue state UP mode DEFAULT group default qlen 1000
+        link/ether 6a:56:f9:8a:22:c2 brd ff:ff:ff:ff:ff:ff link-netnsid 0
+
+    $ sudo ip netns exec demo_ns ip route
+    default via 10.200.0.1 dev v-peer-1
+    10.100.0.0/24 dev v-peer0  proto kernel  scope link  src 10.100.0.2
+    10.200.0.0/24 dev v-peer-1  proto kernel  scope link  src 10.200.0.2
+</code></pre>
+<p>We added a rule in the <code>POSTROUTING</code> chain to map demo_ns connections to nsbr0 ip address. Then,
+a default route has been added to demo_ns to route connections to the outside world.
+Nevertheless, <em>which dns resolver is using demo_ns?</em>. Remember that a network namespace
+just gives a new IP stack. A dns resolver is not part of the network namespace.
+Well, when you execute <code>ip netns exec [net_ns]</code> you are still using the global
+mount namespace, so the files you are using are the same as the root filesystem.
+In other words, <code>/etc/resolv.conf</code> is the same for all the namespaces created with
+the <code>ip netns</code> command. However, with <code>ip netns</code> you might use a different resolver
+creating a new file in /etc/netns/[netns_name]/resolv.conf for each network namespace.</p>
+<pre><code>    $ echo '127.0.0.1 mytest' | sudo tee -a /etc/hosts
+    127.0.0.1 mytest
+    $ sudo ip netns exec demo_ns ping mytest -c 2
+    PING mytest (127.0.0.1) 56(84) bytes of data.
+    64 bytes from localhost (127.0.0.1): icmp_seq=1 ttl=64 time=0.070 ms
+    64 bytes from localhost (127.0.0.1): icmp_seq=2 ttl=64 time=0.086 ms
+</code></pre>
+<p>As you can see, we hava added a new entry in <code>/etc/hosts</code>. Pinging from <code>demo_ns</code>
+resulted succesful for <code>mytest</code>.</p>
+<pre><code>    $sudo mkdir -p /etc/netns/demo_ns/
+    $echo '127.0.0.1 myns' | sudo tee -a /etc/netns/demo_ns/hosts
+
+    $ sudo ip netns exec demo_ns ping myns -c 2
+    PING myns (127.0.0.1) 56(84) bytes of data.
+    64 bytes from myns (127.0.0.1): icmp_seq=1 ttl=64 time=0.072 ms
+    64 bytes from myns (127.0.0.1): icmp_seq=2 ttl=64 time=0.093 m
+
+    $ sudo ip netns exec demo_ns ping mytest -c 2
+    ping: unknown host mytest
+</code></pre>
+<p>If we add a new resolver for the <code>demo_ns</code> we notice that <code>mytest</code> is no longer
+reachable, but <code>myns</code> is. Just remember that <code>/etc/netns/[netns_name]/</code> only works
+with the <code>ip netns</code> command.</p>
+<p>What about giving web_in_all exit to the outside world by nsbr0.</p>
+<pre><code>    # Some output has been cut
+
+    $sudo ip netns exec ${DOCKER_ID} ip route add  93.184.216.34/32 via 10.200.0.1
+
+    $sudo ip netns exec ${DOCKER_ID} ip route
+    default via 172.17.0.1 dev eth0
+    10.200.0.0/24 dev v-peer-c  proto kernel  scope link  src 10.200.0.3
+    93.184.216.34 via 10.200.0.1 dev v-peer-c
+
+    $sudo ip netns exec ${DOCKER_ID} ip route get 93.184.216.34
+    93.184.216.34 via 10.200.0.1 dev v-peer-c  src 10.200.0.3
+        cache
+
+    $sudo ip netns exec ${DOCKER_ID} ping 93.184.216.34 -c 2
+    PING 93.184.216.34 (93.184.216.34) 56(84) bytes of data.
+    64 bytes from 93.184.216.34: icmp_seq=1 ttl=52 time=22.9 ms
+    64 bytes from 93.184.216.34: icmp_seq=2 ttl=52 time=33.4 ms
+
+    $sudo ip netns exec ${DOCKER_ID} ping example.com -c 2
+    PING example.com (93.184.216.34) 56(84) bytes of data.
+    64 bytes from 93.184.216.34: icmp_seq=1 ttl=52 time=53.1 ms
+    64 bytes from 93.184.216.34: icmp_seq=2 ttl=52 time=26.5 ms
+</code></pre>
+<p>We added a static route for <code>example.com</code> and we verified that is using <code>nsbr0</code>
+as their gateway with <code>ip route get</code> command.</p>
+<p>which resolver is using <code>web_in_all</code>?  As it uses its own mount namespace, it uses
+the resolver configured by docker, but you can use a different resolver if you connect
+to the <code>web_in_all</code> network namespace using <code>ip netns</code> command and follow correct
+network configurations.</p>
+<h2 id="conclusion">Conclusion</h2>
+<ul>
+<li>It's better to use user-defined networks to segment, organize and isolate containers.</li>
+<li>You still can find bugs in Docker, some of them can be confusing.</li>
+<li>Network namespace provides isolation for network resources.</li>
+<li>Network namespace is used not only by Docker, but is fundamental in kubernetes,
+openstack and many others.</li>
+</ul>
+<h2 id="bibliography">Bibliography</h2>
+<p>[1] <a href="http://stackoverflow.com/a/34497614/3621080">http://stackoverflow.com/a/34497614/3621080</a></p>
+<p>[2] <a href="https://github.com/moby/moby/issues/20224">https://github.com/moby/moby/issues/20224</a></p>
+<p>[3] namespaces(7)</p>
+<p>[4] <a href="https://github.com/torvalds/linux/blob/master/fs/nsfs.c">https://github.com/torvalds/linux/blob/master/fs/nsfs.c</a></p>
+<p>[5] ip-netns(8)</p>
+<p>[6] ip-route(8)</p>
+
+
+    
+      <code class="text-bold">Tags</code> 
+      
+        <a class="chip text-accent" href="https://blog.bitclvx.com/tags/docker">docker</a>
+      
+        <a class="chip text-accent" href="https://blog.bitclvx.com/tags/namespaces">namespaces</a>
+      
+        <a class="chip text-accent" href="https://blog.bitclvx.com/tags/networking">networking</a>
+      
+    
+  </section>
+  <div class="divider my-gap"></div>
+  <footer class="col-12 d-inline-block">
+    <span class="float-left">
+      <button class="btn btn-action btn-accent shadow s-circle" onclick="window.history.back();"><i class="fas fa-arrow-left"></i></button>
+    </span>
+    <span class="float-right">
+      <div class="text-right float-left mx-2">
+        <span class="text-dark">Luis Michael Ibarra</span><br>
+        <span class="text-gray">I build, break, fix, and run stuff professionaly</span>
+      </div>
+      <figure class="avatar avatar-lg">
+        <img id="profile">
+      </figure>
+    </span>
+  </footer>
+</article>
+
+    <footer class="container p-centered text-center my-gap">
+  
+    <div class="container">
+
+  
+    <a class="symbol" href="https://www.github.com/clvx" target="_blank"><i class="fab fa-github"></i>
+  
+  </a>
+
+  
+    <a class="symbol" href="https://www.linkedin.com/in/clvx" target="_blank"><i class="fab fa-linkedin"></i>
+  
+  </a>
+
+  
+    <a class="symbol" href="https://www.twitter.com/clvx" target="_blank"><i class="fab fa-twitter"></i>
+  
+  </a>
+
+</div>
+
+  
+
+  <small class="text-gray">
+  
+    © Copyright 2020 Luis Michael Ibarra
+  
+  </small>
+</footer>
+
+  </div>
+  </section>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="https://blog.bitclvx.com/js/main.js"></script>
+<script src="https://blog.bitclvx.com/js/highlight.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+
+
+
+</body>
+</html>
