@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="Luis Michael Ibarra">
+  <meta name="description" content="cat /dev/brain 2&amp;&gt; /dev/null">
+  <meta name="generator" content="Hugo 0.61.0" />
+
+  <title>Cert Manager Notes &middot; Periferia Binaria</title>
+
+  <link rel="shortcut icon" href="https://blog.bitclvx.com/images/favicon.ico">
+  <link rel="stylesheet" href="https://blog.bitclvx.com/css/spectre.min.css">
+  <link rel="stylesheet" href="https://blog.bitclvx.com/css/style.css">
+  <link rel="stylesheet" href="https://blog.bitclvx.com/css/highlight.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.9.0/css/all.min.css">
+  
+    <link rel="stylesheet" href="https://cdn.rawgit.com/konpa/devicon/df6431e323547add1b4cf45992913f15286456d3/devicon.min.css">
+  
+
+  
+    <link href="" rel="alternate" type="application/rss+xml" title="Periferia Binaria" />
+  
+
+  
+  <meta property="og:title" content="Cert Manager Notes" />
+<meta property="og:description" content="As cert-manager approaches to hit v1.0 I found a few things that I need to start tracking like versioning, secrets, and other peculiarities about its functionality on kubernetes.
+How it works Cert manager has different components: an issuer, a certificate request, a certificate, an ACME order and challenge.
+You define an issuer with some information like ACME server, email, a private key which is your secret to communicate with the ACME server, and a set of solvers." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.bitclvx.com/post/cert-manager/" />
+<meta property="article:published_time" content="2020-03-07T00:00:00+00:00" />
+<meta property="article:modified_time" content="2020-03-07T00:00:00+00:00" />
+
+  
+  <meta itemprop="name" content="Cert Manager Notes">
+<meta itemprop="description" content="As cert-manager approaches to hit v1.0 I found a few things that I need to start tracking like versioning, secrets, and other peculiarities about its functionality on kubernetes.
+How it works Cert manager has different components: an issuer, a certificate request, a certificate, an ACME order and challenge.
+You define an issuer with some information like ACME server, email, a private key which is your secret to communicate with the ACME server, and a set of solvers.">
+<meta itemprop="datePublished" content="2020-03-07T00:00:00&#43;00:00" />
+<meta itemprop="dateModified" content="2020-03-07T00:00:00&#43;00:00" />
+<meta itemprop="wordCount" content="153">
+
+
+
+<meta itemprop="keywords" content="kubernetes,security,cert-manager," />
+  <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Cert Manager Notes"/>
+<meta name="twitter:description" content="As cert-manager approaches to hit v1.0 I found a few things that I need to start tracking like versioning, secrets, and other peculiarities about its functionality on kubernetes.
+How it works Cert manager has different components: an issuer, a certificate request, a certificate, an ACME order and challenge.
+You define an issuer with some information like ACME server, email, a private key which is your secret to communicate with the ACME server, and a set of solvers."/>
+<meta name="twitter:site" content="@https://www.twitter.com/clvx"/>
+
+</head>
+
+<body onload="setPixelFont()">
+  <div class="container p-fixed" style="z-index:3">
+  <nav class="navbar m-2 p-2 s-rounded shadow bg-primary">
+    <section class="navbar-section">
+      <button class="btn btn-action btn-primary s-circle text-gray" id="pixelfont-toggle"><i class="fas fa-robot fa-lg"></i></button>
+    </section>
+    <section class="navbar-section">
+      
+        <a class="btn btn-primary" href='https://blog.bitclvx.com/'>Home</a>
+      
+
+      
+        <a class="btn btn-primary mx-2" href="/about/">About</a>
+      
+
+      
+      <a class="btn btn-accent" href="" target="_blank"><i class="fas fa-rss fa-lg"></i></a>
+      
+    </section>
+  </nav>
+</div>
+
+  <section class="container grid-md">
+  <div class="columns">
+    
+    
+<article class="container p-centered mt-space">
+  <header>
+    <h2 class="text-center">Cert Manager Notes</h2>
+    <h6 class="text-gray text-italic"></h6>
+  </header>
+  <section class="my-gap">
+    <p>As cert-manager approaches to hit v1.0 I found a few things that I need to start
+tracking like versioning, secrets, and other peculiarities about its functionality on kubernetes.</p>
+<h2 id="how-it-works">How it works</h2>
+<p>Cert manager has different components: an issuer, a certificate request, a certificate, an ACME order and challenge.</p>
+<p>You define an issuer with some information like ACME server, email, a private key which
+is your secret to communicate with the ACME server, and a set of solvers.</p>
+<p>After deploying your issuer, you need to add an annotation and a tls section to you application ingress, so
+the cert-manager webhook can start creating a certificate request to get a certificate.
+The TLS section <em>must have a different secret name than you issuer secret name</em>.
+As the certificate request is submitted it will create an order which generates a challenge
+to the server. After the challenge validates the domain and ipaddress, the certificate is
+generated.</p>
+
+
+    
+      <code class="text-bold">Tags</code> 
+      
+        <a class="chip text-accent" href="https://blog.bitclvx.com/tags/kubernetes">kubernetes</a>
+      
+        <a class="chip text-accent" href="https://blog.bitclvx.com/tags/security">security</a>
+      
+        <a class="chip text-accent" href="https://blog.bitclvx.com/tags/cert-manager">cert-manager</a>
+      
+    
+  </section>
+  <div class="divider my-gap"></div>
+  <footer class="col-12 d-inline-block">
+    <span class="float-left">
+      <button class="btn btn-action btn-accent shadow s-circle" onclick="window.history.back();"><i class="fas fa-arrow-left"></i></button>
+    </span>
+    <span class="float-right">
+      <div class="text-right float-left mx-2">
+        <span class="text-dark">Luis Michael Ibarra</span><br>
+        <span class="text-gray">I build, break, fix, and run stuff professionaly</span>
+      </div>
+      <figure class="avatar avatar-lg">
+        <img id="profile">
+      </figure>
+    </span>
+  </footer>
+</article>
+
+    <footer class="container p-centered text-center my-gap">
+  
+    <div class="container">
+
+  
+    <a class="symbol" href="https://www.github.com/clvx" target="_blank"><i class="fab fa-github"></i>
+  
+  </a>
+
+  
+    <a class="symbol" href="https://www.linkedin.com/in/clvx" target="_blank"><i class="fab fa-linkedin"></i>
+  
+  </a>
+
+  
+    <a class="symbol" href="https://www.twitter.com/clvx" target="_blank"><i class="fab fa-twitter"></i>
+  
+  </a>
+
+</div>
+
+  
+
+  <small class="text-gray">
+  
+    © Copyright 2020 Luis Michael Ibarra
+  
+  </small>
+</footer>
+
+  </div>
+  </section>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="https://blog.bitclvx.com/js/main.js"></script>
+<script src="https://blog.bitclvx.com/js/highlight.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+
+
+
+</body>
+</html>

@@ -3,6 +3,41 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
+    <loc>https://blog.bitclvx.com/post/cert-manager/</loc>
+    <lastmod>2020-03-07T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.bitclvx.com/tags/cert-manager/</loc>
+    <lastmod>2020-03-07T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.bitclvx.com/tags/kubernetes/</loc>
+    <lastmod>2020-03-07T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.bitclvx.com/</loc>
+    <lastmod>2020-03-07T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.bitclvx.com/post/</loc>
+    <lastmod>2020-03-07T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.bitclvx.com/tags/security/</loc>
+    <lastmod>2020-03-07T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.bitclvx.com/tags/</loc>
+    <lastmod>2020-03-07T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
     <loc>https://blog.bitclvx.com/tags/docker/</loc>
     <lastmod>2017-05-20T00:00:00+00:00</lastmod>
   </url>
@@ -19,21 +54,6 @@
   
   <url>
     <loc>https://blog.bitclvx.com/tags/networking/</loc>
-    <lastmod>2017-05-20T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://blog.bitclvx.com/</loc>
-    <lastmod>2017-05-20T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://blog.bitclvx.com/post/</loc>
-    <lastmod>2017-05-20T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://blog.bitclvx.com/tags/</loc>
     <lastmod>2017-05-20T00:00:00+00:00</lastmod>
   </url>
   

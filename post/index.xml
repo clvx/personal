@@ -6,10 +6,21 @@
     <description>Recent content in Posts on Periferia Binaria</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sat, 20 May 2017 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Sat, 07 Mar 2020 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="https://blog.bitclvx.com/post/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Cert Manager Notes</title>
+      <link>https://blog.bitclvx.com/post/cert-manager/</link>
+      <pubDate>Sat, 07 Mar 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://blog.bitclvx.com/post/cert-manager/</guid>
+      <description>As cert-manager approaches to hit v1.0 I found a few things that I need to start tracking like versioning, secrets, and other peculiarities about its functionality on kubernetes.
+How it works Cert manager has different components: an issuer, a certificate request, a certificate, an ACME order and challenge.
+You define an issuer with some information like ACME server, email, a private key which is your secret to communicate with the ACME server, and a set of solvers.</description>
+    </item>
     
     <item>
       <title>Docker Networking and Linux Namespaces Deep Dive</title>
