@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>kubernetes on Periferia Binaria</title>
-    <link>https://blog.bitclvx.com/tags/kubernetes/</link>
-    <description>Recent content in kubernetes on Periferia Binaria</description>
+    <title>api on Periferia Binaria</title>
+    <link>https://blog.bitclvx.com/tags/api/</link>
+    <description>Recent content in api on Periferia Binaria</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Fri, 15 May 2020 00:00:00 +0000</lastBuildDate>
     
-	<atom:link href="https://blog.bitclvx.com/tags/kubernetes/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://blog.bitclvx.com/tags/api/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
@@ -20,17 +20,6 @@
       <description>In my journey to learn the Kubernetes API, the first part is to connect to it.
 You could use simple curl using credentials from $KUBECONFIG to do it, but Kubernetes provides a simpler and better way to connect to it: kubectl proxy --port=8080. This command will create a proxy between your localhost and your target kubernetes API according to your current kubernetes context.
 After that you could keep using curl to just communicate to the api like curl localhost:8080/apis/apps/v1/deployments; however, you can replicate the same with kubectl using kubectl get --raw=&amp;lt;uri&amp;gt;.</description>
-    </item>
-    
-    <item>
-      <title>Cert Manager Notes</title>
-      <link>https://blog.bitclvx.com/post/cert-manager/</link>
-      <pubDate>Sat, 07 Mar 2020 00:00:00 +0000</pubDate>
-      
-      <guid>https://blog.bitclvx.com/post/cert-manager/</guid>
-      <description>As cert-manager approaches to hit v1.0 I found a few things that I need to start tracking like versioning, secrets, and other peculiarities about its functionality on kubernetes.
-How it works Cert manager has different components: an issuer, a certificate request, a certificate, an ACME order and challenge.
-You define an issuer with some information like ACME server, email, a private key which is your secret to communicate with the ACME server, and a set of solvers.</description>
     </item>
     
   </channel>

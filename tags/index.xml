@@ -6,10 +6,46 @@
     <description>Recent content in Tags on Periferia Binaria</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sat, 07 Mar 2020 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Fri, 15 May 2020 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="https://blog.bitclvx.com/tags/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>api</title>
+      <link>https://blog.bitclvx.com/tags/api/</link>
+      <pubDate>Fri, 15 May 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://blog.bitclvx.com/tags/api/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>kubcetl</title>
+      <link>https://blog.bitclvx.com/tags/kubcetl/</link>
+      <pubDate>Fri, 15 May 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://blog.bitclvx.com/tags/kubcetl/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>kubernetes</title>
+      <link>https://blog.bitclvx.com/tags/kubernetes/</link>
+      <pubDate>Fri, 15 May 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://blog.bitclvx.com/tags/kubernetes/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>watch</title>
+      <link>https://blog.bitclvx.com/tags/watch/</link>
+      <pubDate>Fri, 15 May 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://blog.bitclvx.com/tags/watch/</guid>
+      <description></description>
+    </item>
     
     <item>
       <title>cert-manager</title>
@@ -17,15 +53,6 @@
       <pubDate>Sat, 07 Mar 2020 00:00:00 +0000</pubDate>
       
       <guid>https://blog.bitclvx.com/tags/cert-manager/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>kubernetes</title>
-      <link>https://blog.bitclvx.com/tags/kubernetes/</link>
-      <pubDate>Sat, 07 Mar 2020 00:00:00 +0000</pubDate>
-      
-      <guid>https://blog.bitclvx.com/tags/kubernetes/</guid>
       <description></description>
     </item>
     

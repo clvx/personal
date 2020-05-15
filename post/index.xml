@@ -6,10 +6,21 @@
     <description>Recent content in Posts on Periferia Binaria</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sat, 07 Mar 2020 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Fri, 15 May 2020 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="https://blog.bitclvx.com/post/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Playing with the Kubernetes API</title>
+      <link>https://blog.bitclvx.com/post/playing-k8s-api/</link>
+      <pubDate>Fri, 15 May 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://blog.bitclvx.com/post/playing-k8s-api/</guid>
+      <description>In my journey to learn the Kubernetes API, the first part is to connect to it.
+You could use simple curl using credentials from $KUBECONFIG to do it, but Kubernetes provides a simpler and better way to connect to it: kubectl proxy --port=8080. This command will create a proxy between your localhost and your target kubernetes API according to your current kubernetes context.
+After that you could keep using curl to just communicate to the api like curl localhost:8080/apis/apps/v1/deployments; however, you can replicate the same with kubectl using kubectl get --raw=&amp;lt;uri&amp;gt;.</description>
+    </item>
     
     <item>
       <title>Cert Manager Notes</title>

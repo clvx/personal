@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="Luis Michael Ibarra">
+  <meta name="description" content="cat /dev/brain 2&amp;&gt; /dev/null">
+  <meta name="generator" content="Hugo 0.61.0" />
+
+  <title>Playing with the Kubernetes API &middot; Periferia Binaria</title>
+
+  <link rel="shortcut icon" href="https://blog.bitclvx.com/images/favicon.ico">
+  <link rel="stylesheet" href="https://blog.bitclvx.com/css/spectre.min.css">
+  <link rel="stylesheet" href="https://blog.bitclvx.com/css/style.css">
+  <link rel="stylesheet" href="https://blog.bitclvx.com/css/highlight.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.9.0/css/all.min.css">
+  
+    <link rel="stylesheet" href="https://cdn.rawgit.com/konpa/devicon/df6431e323547add1b4cf45992913f15286456d3/devicon.min.css">
+  
+
+  
+    <link href="" rel="alternate" type="application/rss+xml" title="Periferia Binaria" />
+  
+
+  
+  <meta property="og:title" content="Playing with the Kubernetes API" />
+<meta property="og:description" content="In my journey to learn the Kubernetes API, the first part is to connect to it.
+You could use simple curl using credentials from $KUBECONFIG to do it, but Kubernetes provides a simpler and better way to connect to it: kubectl proxy --port=8080. This command will create a proxy between your localhost and your target kubernetes API according to your current kubernetes context.
+After that you could keep using curl to just communicate to the api like curl localhost:8080/apis/apps/v1/deployments; however, you can replicate the same with kubectl using kubectl get --raw=&lt;uri&gt;." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.bitclvx.com/post/playing-k8s-api/" />
+<meta property="article:published_time" content="2020-05-15T00:00:00+00:00" />
+<meta property="article:modified_time" content="2020-05-15T00:00:00+00:00" />
+
+  
+  <meta itemprop="name" content="Playing with the Kubernetes API">
+<meta itemprop="description" content="In my journey to learn the Kubernetes API, the first part is to connect to it.
+You could use simple curl using credentials from $KUBECONFIG to do it, but Kubernetes provides a simpler and better way to connect to it: kubectl proxy --port=8080. This command will create a proxy between your localhost and your target kubernetes API according to your current kubernetes context.
+After that you could keep using curl to just communicate to the api like curl localhost:8080/apis/apps/v1/deployments; however, you can replicate the same with kubectl using kubectl get --raw=&lt;uri&gt;.">
+<meta itemprop="datePublished" content="2020-05-15T00:00:00&#43;00:00" />
+<meta itemprop="dateModified" content="2020-05-15T00:00:00&#43;00:00" />
+<meta itemprop="wordCount" content="236">
+
+
+
+<meta itemprop="keywords" content="kubernetes,api,kubcetl,watch," />
+  <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Playing with the Kubernetes API"/>
+<meta name="twitter:description" content="In my journey to learn the Kubernetes API, the first part is to connect to it.
+You could use simple curl using credentials from $KUBECONFIG to do it, but Kubernetes provides a simpler and better way to connect to it: kubectl proxy --port=8080. This command will create a proxy between your localhost and your target kubernetes API according to your current kubernetes context.
+After that you could keep using curl to just communicate to the api like curl localhost:8080/apis/apps/v1/deployments; however, you can replicate the same with kubectl using kubectl get --raw=&lt;uri&gt;."/>
+<meta name="twitter:site" content="@https://www.twitter.com/clvx"/>
+
+</head>
+
+<body onload="setPixelFont()">
+  <div class="container p-fixed" style="z-index:3">
+  <nav class="navbar m-2 p-2 s-rounded shadow bg-primary">
+    <section class="navbar-section">
+      <button class="btn btn-action btn-primary s-circle text-gray" id="pixelfont-toggle"><i class="fas fa-robot fa-lg"></i></button>
+    </section>
+    <section class="navbar-section">
+      
+        <a class="btn btn-primary" href='https://blog.bitclvx.com/'>Home</a>
+      
+
+      
+        <a class="btn btn-primary mx-2" href="/about/">About</a>
+      
+
+      
+      <a class="btn btn-accent" href="" target="_blank"><i class="fas fa-rss fa-lg"></i></a>
+      
+    </section>
+  </nav>
+</div>
+
+  <section class="container grid-md">
+  <div class="columns">
+    
+    
+<article class="container p-centered mt-space">
+  <header>
+    <h2 class="text-center">Playing with the Kubernetes API</h2>
+    <h6 class="text-gray text-italic"></h6>
+  </header>
+  <section class="my-gap">
+    <p>In my journey to learn the Kubernetes API, the first part is to connect to it.</p>
+<p>You could use simple <code>curl</code> using credentials from <code>$KUBECONFIG</code> to do it, but
+Kubernetes provides a simpler and better way to connect to it: <code>kubectl proxy --port=8080</code>.
+This command will create a proxy between your localhost and your target kubernetes API
+according to your current kubernetes context.</p>
+<p>After that you could keep using curl to just communicate to the api like
+<code>curl localhost:8080/apis/apps/v1/deployments</code>; however, you can replicate the
+same with <code>kubectl</code> using <code>kubectl get --raw=&lt;uri&gt;</code>. For instance, the previous
+curl command can be translated to <code>kubectl get --raw=/apis/apps/v1/deployments</code>.</p>
+<h2 id="watch---checking-kubernetes-events-in-a-resource">Watch - Checking Kubernetes events in a resource</h2>
+<p>If you are curious about which events are happening in a resource, you can use
+watch for it. For this, you need the Kubernetes object resource version which
+can be used to initiate a watch against the server. The server will return all
+changes(creates, deletes and updates) that occur after the supplied <code>resourceVersion</code>.</p>
+<pre><code>#Starting proxy
+$kubectl proxy --port=8080
+
+#Obtaining resourceVersion
+$RESOURCE_VERSION=$(kubectl get --raw=/api/v1/namespaces/default/pods | jq -r .metadata.resourceVersion)
+
+#Starting watch
+$kubectl get --raw=/api/v1/namespaces/default/pods?watch=1&amp;resourceVersion=${RESOURCE_VERSION}
+</code></pre>
+<p>The watch in Linux starts as a background job by default. You can check it with
+<code>jobs</code>. After that, you can bring it to the foreground using <code>fg [job_number]</code>.
+If the client disconnects, you can restart it using the last returned <code>resourceVersion</code>,
+or performing a new request and begin again.</p>
+<h2 id="bibliography">Bibliography</h2>
+<ul>
+<li><a href="https://kubernetes.io/docs/reference/using-api/api-concepts/#efficient-detection-of-changes">https://kubernetes.io/docs/reference/using-api/api-concepts/#efficient-detection-of-changes</a></li>
+</ul>
+
+
+    
+      <code class="text-bold">Tags</code> 
+      
+        <a class="chip text-accent" href="https://blog.bitclvx.com/tags/kubernetes">kubernetes</a>
+      
+        <a class="chip text-accent" href="https://blog.bitclvx.com/tags/api">api</a>
+      
+        <a class="chip text-accent" href="https://blog.bitclvx.com/tags/kubcetl">kubcetl</a>
+      
+        <a class="chip text-accent" href="https://blog.bitclvx.com/tags/watch">watch</a>
+      
+    
+  </section>
+  <div class="divider my-gap"></div>
+  <footer class="col-12 d-inline-block">
+    <span class="float-left">
+      <button class="btn btn-action btn-accent shadow s-circle" onclick="window.history.back();"><i class="fas fa-arrow-left"></i></button>
+    </span>
+    <span class="float-right">
+      <div class="text-right float-left mx-2">
+        <span class="text-dark">Luis Michael Ibarra</span><br>
+        <span class="text-gray">I build, break, fix, and run stuff professionaly</span>
+      </div>
+      <figure class="avatar avatar-lg">
+        <img id="profile">
+      </figure>
+    </span>
+  </footer>
+</article>
+
+    <footer class="container p-centered text-center my-gap">
+  
+    <div class="container">
+
+  
+    <a class="symbol" href="https://www.github.com/clvx" target="_blank"><i class="fab fa-github"></i>
+  
+  </a>
+
+  
+    <a class="symbol" href="https://www.linkedin.com/in/clvx" target="_blank"><i class="fab fa-linkedin"></i>
+  
+  </a>
+
+  
+    <a class="symbol" href="https://www.twitter.com/clvx" target="_blank"><i class="fab fa-twitter"></i>
+  
+  </a>
+
+</div>
+
+  
+
+  <small class="text-gray">
+  
+    © Copyright 2020 Luis Michael Ibarra
+  
+  </small>
+</footer>
+
+  </div>
+  </section>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="https://blog.bitclvx.com/js/main.js"></script>
+<script src="https://blog.bitclvx.com/js/highlight.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+
+
+
+</body>
+</html>
