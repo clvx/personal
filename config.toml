@@ -7,6 +7,9 @@ theme = "spectre-pixel"
 # Enter your tracking code to enable Google Analytics
 googleAnalytics = "UA-166845382-1"
 
+enableRobotsTXT = true
+canonifyURLs = true
+
 [params]
   name = "Luis Michael Ibarra"
   altName = "Clvx"
