@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="Luis Michael Ibarra">
+  <meta name="description" content="cat /dev/brain 2&amp;&gt; /dev/null">
+  <meta name="generator" content="Hugo 0.71.1" />
+
+  <title>Gitlab Runners &middot; Periferia Binaria</title>
+
+  <link rel="shortcut icon" href="https://blog.bitclvx.com/images/favicon.ico">
+  <link rel="stylesheet" href="https://blog.bitclvx.com/css/spectre.min.css">
+  <link rel="stylesheet" href="https://blog.bitclvx.com/css/style.css">
+  <link rel="stylesheet" href="https://blog.bitclvx.com/css/highlight.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.9.0/css/all.min.css">
+  
+    <link rel="stylesheet" href="https://cdn.rawgit.com/konpa/devicon/df6431e323547add1b4cf45992913f15286456d3/devicon.min.css">
+  
+
+  
+    <link href="" rel="alternate" type="application/rss+xml" title="Periferia Binaria" />
+  
+
+  
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-166845382-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+
+  <meta property="og:title" content="Gitlab Runners" />
+<meta property="og:description" content="Gitlab Runners are the core component to execute your automation for the Gitlab platform.
+Concepts Runners are pretty simple to manage. It consists on a golang binary which is deployed in a platform which can be a vm, container, etc. A platform can have one or more Gitlab Runners. Then, a runner can have only one executor which is the one that execute your jobs. An executor can be a shell, a docker container, ssh to jump to another host, or an orchestrator like Kubernetes, VirtualBox, or AWS." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.bitclvx.com/post/gitlab-ci/" />
+<meta property="article:published_time" content="2020-11-16T00:00:00+00:00" />
+<meta property="article:modified_time" content="2020-11-16T00:00:00+00:00" />
+
+  
+  <meta itemprop="name" content="Gitlab Runners">
+<meta itemprop="description" content="Gitlab Runners are the core component to execute your automation for the Gitlab platform.
+Concepts Runners are pretty simple to manage. It consists on a golang binary which is deployed in a platform which can be a vm, container, etc. A platform can have one or more Gitlab Runners. Then, a runner can have only one executor which is the one that execute your jobs. An executor can be a shell, a docker container, ssh to jump to another host, or an orchestrator like Kubernetes, VirtualBox, or AWS.">
+<meta itemprop="datePublished" content="2020-11-16T00:00:00&#43;00:00" />
+<meta itemprop="dateModified" content="2020-11-16T00:00:00&#43;00:00" />
+<meta itemprop="wordCount" content="312">
+
+
+
+<meta itemprop="keywords" content="gitlab,ci,cd,runner," />
+  <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Gitlab Runners"/>
+<meta name="twitter:description" content="Gitlab Runners are the core component to execute your automation for the Gitlab platform.
+Concepts Runners are pretty simple to manage. It consists on a golang binary which is deployed in a platform which can be a vm, container, etc. A platform can have one or more Gitlab Runners. Then, a runner can have only one executor which is the one that execute your jobs. An executor can be a shell, a docker container, ssh to jump to another host, or an orchestrator like Kubernetes, VirtualBox, or AWS."/>
+<meta name="twitter:site" content="@https://www.twitter.com/clvx"/>
+
+</head>
+
+<body onload="setPixelFont()">
+  <div class="container p-fixed" style="z-index:3">
+  <nav class="navbar m-2 p-2 s-rounded shadow bg-primary">
+    <section class="navbar-section">
+      <button class="btn btn-action btn-primary s-circle text-gray" id="pixelfont-toggle"><i class="fas fa-robot fa-lg"></i></button>
+    </section>
+    <section class="navbar-section">
+      
+        <a class="btn btn-primary" href='https://blog.bitclvx.com/'>Home</a>
+      
+
+      
+        <a class="btn btn-primary mx-2" href="https://blog.bitclvx.com/about/">About</a>
+      
+
+      
+      <a class="btn btn-accent" href="" target="_blank"><i class="fas fa-rss fa-lg"></i></a>
+      
+    </section>
+  </nav>
+</div>
+
+  <section class="container grid-md">
+  <div class="columns">
+    
+    
+<article class="container p-centered mt-space">
+  <header>
+    <h2 class="text-center">Gitlab Runners</h2>
+    <h6 class="text-gray text-italic"></h6>
+  </header>
+  <section class="my-gap">
+    <p>Gitlab Runners are the core component to execute your automation for the Gitlab platform.</p>
+<h2 id="concepts">Concepts</h2>
+<p>Runners are pretty simple to manage. It consists on a golang binary which is deployed
+in a platform which can be a vm, container, etc. A platform can have <em>one or more
+Gitlab Runners</em>. Then, a <code>runner</code> can have only <em>one executor</em> which is the one
+that execute your jobs. An <code>executor</code> can be a shell, a docker container, ssh to jump
+to another host, or an <em>orchestrator</em> like Kubernetes, VirtualBox, or AWS.</p>
+<h2 id="registration">Registration</h2>
+<p>After a <code>runner</code> is set up, it needs to be registered in Gitlab using <code>gitlab-runner register</code>.
+By default a <code>runner</code> does not have any tags associated. Tags are important to
+allocate pipeline jobs so they can be executed in runners.
+If a <code>.gitlab-ci.yml</code> stage section does not have a tag associated it will not be
+executed as it does not have an executor associated with it. Furthermore, defined
+tags in a stage section must match runner tags.</p>
+<p>For example, If a runner has tags <code>build, test, deploy</code> and the stage section defines
+an executor <code>build</code>, then that pipeline will be executed in the runner; howver,
+if the stage section defines tags <code>deploy,release</code>,  then it will not be executed
+as the runner does not have the <code>release</code> tag associated with it.</p>
+<h2 id="configuration">Configuration</h2>
+<p>The main config file for a gitlab-runner is <code>/etc/gitlab-runner/config.toml</code>.
+Here you can add runners, configure global environment variables for each runner,
+build and cache dir location, etc.
+This is being read every 3 seconds by default, if it encounters a change in the
+common configurations, it will reload the new configs. Configs associated to
+networking and others will require a full service restart.</p>
+<p>Environment variables defined in a runner config will be overriden if the envar
+is also defined in the pipeline definition as these variables have precedence
+over the config file.</p>
+
+
+    
+      <code class="text-bold">Tags</code> 
+      
+        <a class="chip text-accent" href="https://blog.bitclvx.com/tags/gitlab">gitlab</a>
+      
+        <a class="chip text-accent" href="https://blog.bitclvx.com/tags/ci">ci</a>
+      
+        <a class="chip text-accent" href="https://blog.bitclvx.com/tags/cd">cd</a>
+      
+        <a class="chip text-accent" href="https://blog.bitclvx.com/tags/runner">runner</a>
+      
+    
+  </section>
+  <div class="divider my-gap"></div>
+  <footer class="col-12 d-inline-block">
+    <span class="float-left">
+      <button class="btn btn-action btn-accent shadow s-circle" onclick="window.history.back();"><i class="fas fa-arrow-left"></i></button>
+    </span>
+    <span class="float-right">
+      <div class="text-right float-left mx-2">
+        <span class="text-dark">Luis Michael Ibarra</span><br>
+        <span class="text-gray">I build, break, fix, and run stuff professionaly</span>
+      </div>
+      <figure class="avatar avatar-lg">
+        <img id="profile">
+      </figure>
+    </span>
+  </footer>
+</article>
+
+    <footer class="container p-centered text-center my-gap">
+  
+    <div class="container">
+
+  
+    <a class="symbol" href="https://www.github.com/clvx" target="_blank"><i class="fab fa-github"></i>
+  
+  </a>
+
+  
+    <a class="symbol" href="https://www.linkedin.com/in/clvx" target="_blank"><i class="fab fa-linkedin"></i>
+  
+  </a>
+
+  
+    <a class="symbol" href="https://www.twitter.com/clvx" target="_blank"><i class="fab fa-twitter"></i>
+  
+  </a>
+
+</div>
+
+  
+
+  <small class="text-gray">
+  
+    © Copyright 2020 Luis Michael Ibarra
+  
+  </small>
+</footer>
+
+  </div>
+  </section>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="https://blog.bitclvx.com/js/main.js"></script>
+<script src="https://blog.bitclvx.com/js/highlight.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-166845382-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+
+
+</body>
+</html>

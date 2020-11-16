@@ -18,7 +18,7 @@
       
       <guid>https://blog.bitclvx.com/post/docker-networking/</guid>
       <description>This is a write up of my docker networking demo at the Docker Orlando meetup.
-Let&#39;s begin with the diagram.
+Let&amp;rsquo;s begin with the diagram.
 We can see in figure 1 a server which can be a physical device or a vm(cloud or not) connected to the Internet by an interface ens3 as its gateway interface - ens3 because kvm configures it by default. Then we have four Linux bridges. One is docker0 which is the default linux bridge configured when Docker is set up.</description>
     </item>
     

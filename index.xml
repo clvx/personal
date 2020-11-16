@@ -6,10 +6,20 @@
     <description>Recent content on Periferia Binaria</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Fri, 15 May 2020 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 16 Nov 2020 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="https://blog.bitclvx.com/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Gitlab Runners</title>
+      <link>https://blog.bitclvx.com/post/gitlab-ci/</link>
+      <pubDate>Mon, 16 Nov 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://blog.bitclvx.com/post/gitlab-ci/</guid>
+      <description>Gitlab Runners are the core component to execute your automation for the Gitlab platform.
+Concepts Runners are pretty simple to manage. It consists on a golang binary which is deployed in a platform which can be a vm, container, etc. A platform can have one or more Gitlab Runners. Then, a runner can have only one executor which is the one that execute your jobs. An executor can be a shell, a docker container, ssh to jump to another host, or an orchestrator like Kubernetes, VirtualBox, or AWS.</description>
+    </item>
     
     <item>
       <title>Playing with the Kubernetes API</title>
@@ -40,7 +50,7 @@ You define an issuer with some information like ACME server, email, a private ke
       
       <guid>https://blog.bitclvx.com/post/docker-networking/</guid>
       <description>This is a write up of my docker networking demo at the Docker Orlando meetup.
-Let&#39;s begin with the diagram.
+Let&amp;rsquo;s begin with the diagram.
 We can see in figure 1 a server which can be a physical device or a vm(cloud or not) connected to the Internet by an interface ens3 as its gateway interface - ens3 because kvm configures it by default. Then we have four Linux bridges. One is docker0 which is the default linux bridge configured when Docker is set up.</description>
     </item>
     

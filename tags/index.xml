@@ -6,10 +6,46 @@
     <description>Recent content in Tags on Periferia Binaria</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Fri, 15 May 2020 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 16 Nov 2020 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="https://blog.bitclvx.com/tags/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>cd</title>
+      <link>https://blog.bitclvx.com/tags/cd/</link>
+      <pubDate>Mon, 16 Nov 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://blog.bitclvx.com/tags/cd/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>ci</title>
+      <link>https://blog.bitclvx.com/tags/ci/</link>
+      <pubDate>Mon, 16 Nov 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://blog.bitclvx.com/tags/ci/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>gitlab</title>
+      <link>https://blog.bitclvx.com/tags/gitlab/</link>
+      <pubDate>Mon, 16 Nov 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://blog.bitclvx.com/tags/gitlab/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>runner</title>
+      <link>https://blog.bitclvx.com/tags/runner/</link>
+      <pubDate>Mon, 16 Nov 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://blog.bitclvx.com/tags/runner/</guid>
+      <description></description>
+    </item>
     
     <item>
       <title>api</title>

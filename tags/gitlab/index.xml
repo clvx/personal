@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>gitlab on Periferia Binaria</title>
+    <link>https://blog.bitclvx.com/tags/gitlab/</link>
+    <description>Recent content in gitlab on Periferia Binaria</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Mon, 16 Nov 2020 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="https://blog.bitclvx.com/tags/gitlab/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Gitlab Runners</title>
+      <link>https://blog.bitclvx.com/post/gitlab-ci/</link>
+      <pubDate>Mon, 16 Nov 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://blog.bitclvx.com/post/gitlab-ci/</guid>
+      <description>Gitlab Runners are the core component to execute your automation for the Gitlab platform.
+Concepts Runners are pretty simple to manage. It consists on a golang binary which is deployed in a platform which can be a vm, container, etc. A platform can have one or more Gitlab Runners. Then, a runner can have only one executor which is the one that execute your jobs. An executor can be a shell, a docker container, ssh to jump to another host, or an orchestrator like Kubernetes, VirtualBox, or AWS.</description>
+    </item>
+    
+  </channel>
+</rss>
