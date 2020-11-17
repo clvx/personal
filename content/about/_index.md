@@ -9,9 +9,10 @@ menu: "main"
 
 ### Development Skills
 {{< tag go >}}
-{{< tag python >}}
+{{< tag kubernetes >}}
 {{< tag linux >}}
 {{< tag docker >}}
+{{< tag python >}}
 
 ### [Language Proficiency](https://corporatefinanceinstitute.com/resources/careers/resume/language-proficiency-levels/)
 - English - Professional
