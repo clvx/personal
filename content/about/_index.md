@@ -9,7 +9,6 @@ menu: "main"
 
 ### Development Skills
 {{< tag go >}}
-{{< tag kubernetes >}}
 {{< tag linux >}}
 {{< tag docker >}}
 {{< tag python >}}
