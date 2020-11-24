@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="Luis Michael Ibarra">
+  <meta name="description" content="cat /dev/brain 2&amp;&gt; /dev/null">
+  <meta name="generator" content="Hugo 0.71.1" />
+
+  <title>Golang HTTP Handlers &middot; Periferia Binaria</title>
+
+  <link rel="shortcut icon" href="https://blog.bitclvx.com/images/favicon.ico">
+  <link rel="stylesheet" href="https://blog.bitclvx.com/css/spectre.min.css">
+  <link rel="stylesheet" href="https://blog.bitclvx.com/css/style.css">
+  <link rel="stylesheet" href="https://blog.bitclvx.com/css/highlight.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.9.0/css/all.min.css">
+  
+    <link rel="stylesheet" href="https://cdn.rawgit.com/konpa/devicon/df6431e323547add1b4cf45992913f15286456d3/devicon.min.css">
+  
+
+  
+    <link href="" rel="alternate" type="application/rss+xml" title="Periferia Binaria" />
+  
+
+  
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-166845382-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+
+  <meta property="og:title" content="Golang HTTP Handlers" />
+<meta property="og:description" content="To process HTTP requests in golang, you need a way to handle different routes, and a actual handler to process the requests. ServeMux and the Handler interface do exactly that.
+Handler Interface Golang provides the http.Handler interface to respond to HTTP requests in the net/http package. This interface only requires you to implement ServeHTTP(ResponseWriter, *Request).
+type Handler interface { ServeHTTP(ResponseWriter, *Request) }  In addition, the http.HandlerFunc type is an adapter to allow the use of ordinary functions as HTTP handlers." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.bitclvx.com/post/golang-handler/" />
+<meta property="article:published_time" content="2020-11-23T00:00:00+00:00" />
+<meta property="article:modified_time" content="2020-11-23T00:00:00+00:00" />
+
+  
+  <meta itemprop="name" content="Golang HTTP Handlers">
+<meta itemprop="description" content="To process HTTP requests in golang, you need a way to handle different routes, and a actual handler to process the requests. ServeMux and the Handler interface do exactly that.
+Handler Interface Golang provides the http.Handler interface to respond to HTTP requests in the net/http package. This interface only requires you to implement ServeHTTP(ResponseWriter, *Request).
+type Handler interface { ServeHTTP(ResponseWriter, *Request) }  In addition, the http.HandlerFunc type is an adapter to allow the use of ordinary functions as HTTP handlers.">
+<meta itemprop="datePublished" content="2020-11-23T00:00:00&#43;00:00" />
+<meta itemprop="dateModified" content="2020-11-23T00:00:00&#43;00:00" />
+<meta itemprop="wordCount" content="625">
+
+
+
+<meta itemprop="keywords" content="golang,middleware,http,handlers,mux," />
+  <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Golang HTTP Handlers"/>
+<meta name="twitter:description" content="To process HTTP requests in golang, you need a way to handle different routes, and a actual handler to process the requests. ServeMux and the Handler interface do exactly that.
+Handler Interface Golang provides the http.Handler interface to respond to HTTP requests in the net/http package. This interface only requires you to implement ServeHTTP(ResponseWriter, *Request).
+type Handler interface { ServeHTTP(ResponseWriter, *Request) }  In addition, the http.HandlerFunc type is an adapter to allow the use of ordinary functions as HTTP handlers."/>
+<meta name="twitter:site" content="@https://www.twitter.com/clvx"/>
+
+</head>
+
+<body onload="setPixelFont()">
+  <div class="container p-fixed" style="z-index:3">
+  <nav class="navbar m-2 p-2 s-rounded shadow bg-primary">
+    <section class="navbar-section">
+      <button class="btn btn-action btn-primary s-circle text-gray" id="pixelfont-toggle"><i class="fas fa-robot fa-lg"></i></button>
+    </section>
+    <section class="navbar-section">
+      
+        <a class="btn btn-primary" href='https://blog.bitclvx.com/'>Home</a>
+      
+
+      
+        <a class="btn btn-primary mx-2" href="https://blog.bitclvx.com/about/">About</a>
+      
+
+      
+      <a class="btn btn-accent" href="" target="_blank"><i class="fas fa-rss fa-lg"></i></a>
+      
+    </section>
+  </nav>
+</div>
+
+  <section class="container grid-md">
+  <div class="columns">
+    
+    
+<article class="container p-centered mt-space">
+  <header>
+    <h2 class="text-center">Golang HTTP Handlers</h2>
+    <h6 class="text-gray text-italic"></h6>
+  </header>
+  <section class="my-gap">
+    <p>To process HTTP requests in golang, you need a way to handle different routes,
+and a actual handler to process the requests. ServeMux and the Handler interface
+do exactly that.</p>
+<h2 id="handler-interface">Handler Interface</h2>
+<p>Golang provides the <code>http.Handler</code> interface to respond to HTTP requests in the
+<code>net/http</code> package. This interface only requires you to implement
+<code>ServeHTTP(ResponseWriter, *Request)</code>.</p>
+<pre><code>type Handler interface {
+    ServeHTTP(ResponseWriter, *Request)
+}
+</code></pre>
+<p>In addition, the <code>http.HandlerFunc</code> type is an adapter to allow the use of
+ordinary functions as HTTP handlers.</p>
+<pre><code>type HandlerFunc func(ResponseWriter, *Request)
+
+// ServeHTTP calls f(w, r).
+func (f HandlerFunc) ServeHTTP(w ResponseWriter, r *Request) {
+    f(w, r)
+}
+</code></pre>
+<p>For example, the following call will implement the Handler interface.</p>
+<pre><code>http.HandlerFunc(func (w http.ResponseWriter, r \*http.Request){
+    w.Write([]byte(&quot;Hola Mundo&quot;))
+})
+</code></pre>
+<h2 id="servemux">ServeMux</h2>
+<p>ServeMux is a HTTP request multiplexer which means it matches incoming requests with
+a list of registered patterns. You can create one by calling <code>http.NewServeMux()</code>
+which returns a pointer to a <code>ServeMux</code> struct. There&rsquo;s also <code>DefaultServeMux</code> which is
+a global defined <code>ServeMux</code> in case you don&rsquo;t specify one. As it&rsquo;s a global variable
+any package is able to access it and register a route in it.</p>
+<p><code>ServeMux</code> provides a bunch of methods, but the most important ones are
+<code>ServeMux.Handle</code>, <code>ServeMux.HandleFunc</code>, and <code>ServeMux.ServeHTTP</code>.</p>
+<pre><code>ServeMux.Handle(pattern string, handler Handler)
+ServerMux.HandleFunc(pattern string, handler func(http.ResponseWriter, \*http.Request)
+</code></pre>
+<p>Both functions register a pattern for the given handler in <code>http.ServerMux.MuxEntry</code>
+struct, but <code>ServeMux.HandleFunc</code> calls <code>ServeMux.Handle</code> internally passing the
+<code>http.HandlerFunc(pattern, handler)</code> function as a parameter.</p>
+<p><code>ServeMux.ServeHTTP</code> implements the Handler interface.</p>
+<pre><code>type customHandler struct{}
+
+//implementing the Handler interface
+func (mh *customHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+    w.Write([]byte(&quot;custom handler!&quot;))
+}
+
+func myHome (w http.ResponseWriter, r *http.Request){
+    w.Write([]byte(&quot;another custom handler!&quot;))
+}
+
+func main() {
+    myHandler := customHandler{}
+
+    mux := http.NewServeMux()
+    mux.Handle(&quot;/&quot;, myHandler) //registers / to myHandler
+    mux.HandleFunc(&quot;/home&quot;, myHome) //registers /home to myHome
+
+    http.ListenAndServe(&quot;:3000&quot;, mux) //uses custom mux
+    http.ListenAndServe(&quot;:4000&quot;, nil) //uses DefaultServeMux
+}
+</code></pre>
+<h2 id="middleware">Middleware</h2>
+<p>Middleware is used to provide a processing pipeline separating concerns and defining
+clear boundaries for a request lifecycle.</p>
+<p>It&rsquo;s achieved by creating a chain of handlers to do pre or post procesing.</p>
+<pre><code>func exampleMiddleware(next http.Handler) http.Handler {
+    return http.HandlerFunc(
+        func (w http.ResponseWriter, r *http.Request) {
+            //pipeline pre processing
+            next.ServeHTTP(w, r)
+            //pipeline post processing
+        }
+    )
+}
+</code></pre>
+<p>The above example has a handler interface as a signature and returns a handler.
+This means it can be used with <code>http.ServeMux</code> or any other object that implements
+the Handler interface. Furthermore, as it returns a Handler interface, it can be
+chained with objects that expect one.</p>
+<h3 id="injecting-dependencies---adapter">Injecting dependencies - Adapter</h3>
+<p>We can use an adapter to pass dependencies to our middleware function. The dependencies
+will be available to the closure. As we are wrapping the middleware in a closure,
+it can be extendend with different variables.</p>
+<pre><code>func exampleMiddlewareDependency(key, val string) func(http.Handler) http.Handler {
+    return func(next http.Handler) http.Handler {
+        //returns a handler interface
+        return http.HandlerFunc(
+            func (w http.ResponseWriter, r *http.Request) {
+                //pipeline pre processing
+                w.Header().Add(key, val)
+                next.ServeHTTP(w, r)
+                //pipeline post processing
+            }
+        )
+    }
+}
+</code></pre>
+<p>We can call later the function as</p>
+<pre><code> func main() {
+    myHandler := customHandler{}
+
+    mux := http.NewServeMux()
+    mux.Handle(&quot;/&quot;, myHandler) //registers / to myHandler
+    mux.HandleFunc(&quot;/home&quot;, myHome) //registers /home to myHome
+
+    middleware := exampleMiddlewareDependency(&quot;foo&quot;, &quot;bar&quot;) //returns a func(http.Handler) http.Handler
+
+    http.ListenAndServe(&quot;:3000&quot;, middleware(mux)) //wrapping mux in middleware
+}
+</code></pre>
+<h3 id="injecting-dependencies---types">Injecting dependencies - Types</h3>
+<p>Another way to pass dependencies is defining a struct that implements the Handler
+interface defining a handler and any other variables as elements.</p>
+<pre><code>type middlewareHandler struct {
+    next     http.Handler
+    headerKey   string
+    headerValue string
+}
+
+func(mh *middlewareHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) http.Handler{
+    w.Header().Add(key, val)
+    mh.next.ServeHTTP(w, r)
+}
+
+func newMiddlewareHandler(next http.Handler, key string, value string) *middlewareHandler{
+    return &amp;middlewareHandler{next, key, value}
+}
+
+  func main() {
+    myHandler := customHandler{}
+
+    mux := http.NewServeMux()
+    mux.Handle(&quot;/&quot;, myHandler) //registers / to myHandler
+    mux.HandleFunc(&quot;/home&quot;, myHome) //registers /home to myHome
+
+    middleware := newMiddlewareHandler(mux, &quot;foo&quot;, &quot;bar&quot;)
+    http.ListenAndServe(&quot;:3000&quot;, middleware) //wrapping mux in middleware
+}   
+</code></pre>
+<h2 id="bibliography">Bibliography</h2>
+<ul>
+<li><a href="https://medium.com/better-programming/overview-of-server-side-http-apis-in-go-44f052737e4b">https://medium.com/better-programming/overview-of-server-side-http-apis-in-go-44f052737e4b</a></li>
+<li><a href="https://stackoverflow.com/questions/40478027/what-is-an-http-request-multiplexer">https://stackoverflow.com/questions/40478027/what-is-an-http-request-multiplexer</a></li>
+<li><a href="https://www.alexedwards.net/blog/a-recap-of-request-handling">https://www.alexedwards.net/blog/a-recap-of-request-handling</a></li>
+<li><a href="https://drstearns.github.io/tutorials/gohandlerctx/#secclosures">https://drstearns.github.io/tutorials/gohandlerctx/#secclosures</a></li>
+</ul>
+
+
+    
+      <code class="text-bold">Tags</code> 
+      
+        <a class="chip text-accent" href="https://blog.bitclvx.com/tags/golang">golang</a>
+      
+        <a class="chip text-accent" href="https://blog.bitclvx.com/tags/middleware">middleware</a>
+      
+        <a class="chip text-accent" href="https://blog.bitclvx.com/tags/http">http</a>
+      
+        <a class="chip text-accent" href="https://blog.bitclvx.com/tags/handlers">handlers</a>
+      
+        <a class="chip text-accent" href="https://blog.bitclvx.com/tags/mux">mux</a>
+      
+    
+  </section>
+  <div class="divider my-gap"></div>
+  <footer class="col-12 d-inline-block">
+    <span class="float-left">
+      <button class="btn btn-action btn-accent shadow s-circle" onclick="window.history.back();"><i class="fas fa-arrow-left"></i></button>
+    </span>
+    <span class="float-right">
+      <div class="text-right float-left mx-2">
+        <span class="text-dark">Luis Michael Ibarra</span><br>
+        <span class="text-gray">I build, break, fix, and run stuff professionaly</span>
+      </div>
+      <figure class="avatar avatar-lg">
+        <img id="profile">
+      </figure>
+    </span>
+  </footer>
+</article>
+
+    <footer class="container p-centered text-center my-gap">
+  
+    <div class="container">
+
+  
+    <a class="symbol" href="https://www.github.com/clvx" target="_blank"><i class="fab fa-github"></i>
+  
+  </a>
+
+  
+    <a class="symbol" href="https://www.linkedin.com/in/clvx" target="_blank"><i class="fab fa-linkedin"></i>
+  
+  </a>
+
+  
+    <a class="symbol" href="https://www.twitter.com/clvx" target="_blank"><i class="fab fa-twitter"></i>
+  
+  </a>
+
+</div>
+
+  
+
+  <small class="text-gray">
+  
+    © Copyright 2020 Luis Michael Ibarra
+  
+  </small>
+</footer>
+
+  </div>
+  </section>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="https://blog.bitclvx.com/js/main.js"></script>
+<script src="https://blog.bitclvx.com/js/highlight.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-166845382-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+
+
+</body>
+</html>

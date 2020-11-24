@@ -6,10 +6,55 @@
     <description>Recent content in Tags on Periferia Binaria</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 16 Nov 2020 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 23 Nov 2020 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="https://blog.bitclvx.com/tags/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>golang</title>
+      <link>https://blog.bitclvx.com/tags/golang/</link>
+      <pubDate>Mon, 23 Nov 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://blog.bitclvx.com/tags/golang/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>handlers</title>
+      <link>https://blog.bitclvx.com/tags/handlers/</link>
+      <pubDate>Mon, 23 Nov 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://blog.bitclvx.com/tags/handlers/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>http</title>
+      <link>https://blog.bitclvx.com/tags/http/</link>
+      <pubDate>Mon, 23 Nov 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://blog.bitclvx.com/tags/http/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>middleware</title>
+      <link>https://blog.bitclvx.com/tags/middleware/</link>
+      <pubDate>Mon, 23 Nov 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://blog.bitclvx.com/tags/middleware/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>mux</title>
+      <link>https://blog.bitclvx.com/tags/mux/</link>
+      <pubDate>Mon, 23 Nov 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://blog.bitclvx.com/tags/mux/</guid>
+      <description></description>
+    </item>
     
     <item>
       <title>cd</title>
