@@ -32,7 +32,7 @@ jobs:
     - shell: bash
       run: |
         mv blog/* ./ && rmdir blog
-    - uses: webfactory/ssh-agent@v0.2.0
+    - uses: webfactory/ssh-agent@v0.4.1
       with:
         ssh-private-key: ${{ secrets.DEPLOY_KEY }}
     - uses: JamesIves/github-pages-deploy-action@releases/v3
