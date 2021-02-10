@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="author" content="Luis Michael Ibarra">
   <meta name="description" content="cat /dev/brain 2&amp;&gt; /dev/null">
-  <meta name="generator" content="Hugo 0.71.1" />
+  <meta name="generator" content="Hugo 0.79.1" />
 
   <title>Docker Networking and Linux Namespaces Deep Dive &middot; Periferia Binaria</title>
 
@@ -51,13 +51,14 @@ We can see in figure 1 a server which can be a physical device or a vm(cloud or 
 <meta itemprop="description" content="This is a write up of my docker networking demo at the Docker Orlando meetup.
 Let&rsquo;s begin with the diagram.
 We can see in figure 1 a server which can be a physical device or a vm(cloud or not) connected to the Internet by an interface ens3 as its gateway interface - ens3 because kvm configures it by default. Then we have four Linux bridges. One is docker0 which is the default linux bridge configured when Docker is set up.">
-<meta itemprop="datePublished" content="2017-05-20T00:00:00&#43;00:00" />
-<meta itemprop="dateModified" content="2017-05-20T00:00:00&#43;00:00" />
+<meta itemprop="datePublished" content="2017-05-20T00:00:00+00:00" />
+<meta itemprop="dateModified" content="2017-05-20T00:00:00+00:00" />
 <meta itemprop="wordCount" content="4733">
 
 
 
 <meta itemprop="keywords" content="docker,namespaces,networking," />
+
   <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Docker Networking and Linux Namespaces Deep Dive"/>
 <meta name="twitter:description" content="This is a write up of my docker networking demo at the Docker Orlando meetup.
@@ -129,33 +130,33 @@ to be restarted. Options of this bridge can be found in <code>docker network ins
 <thead>
 <tr>
 <th>Options</th>
-<th align="center">Values</th>
+<th style="text-align:center">Values</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>com.docker.network.bridge.default_bridge</td>
-<td align="center">true or false</td>
+<td style="text-align:center">true or false</td>
 </tr>
 <tr>
 <td>com.docker.network.bridge.enable_icc</td>
-<td align="center">true or false</td>
+<td style="text-align:center">true or false</td>
 </tr>
 <tr>
 <td>com.docker.network.bridge.enable_ip_masquerade</td>
-<td align="center">true or false</td>
+<td style="text-align:center">true or false</td>
 </tr>
 <tr>
 <td>com.docker.network.bridge.host_binding_ipv4</td>
-<td align="center">ipv4 to bind</td>
+<td style="text-align:center">ipv4 to bind</td>
 </tr>
 <tr>
 <td>com.docker.network.bridge.name</td>
-<td align="center">bridge name</td>
+<td style="text-align:center">bridge name</td>
 </tr>
 <tr>
 <td>com.docker.network.driver.mtu</td>
-<td align="center">mtu</td>
+<td style="text-align:center">mtu</td>
 </tr>
 </tbody>
 </table>
@@ -921,7 +922,7 @@ openstack and many others.</li>
 
   <small class="text-gray">
   
-    © Copyright 2020 Luis Michael Ibarra
+    © Copyright 2021 Luis Michael Ibarra
   
   </small>
 </footer>

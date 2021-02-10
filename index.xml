@@ -6,10 +6,17 @@
     <description>Recent content on Periferia Binaria</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 23 Nov 2020 00:00:00 +0000</lastBuildDate>
-    
-	<atom:link href="https://blog.bitclvx.com/index.xml" rel="self" type="application/rss+xml" />
-    
+    <lastBuildDate>Tue, 09 Feb 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://blog.bitclvx.com/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Golang Context</title>
+      <link>https://blog.bitclvx.com/post/golang-context/</link>
+      <pubDate>Tue, 09 Feb 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://blog.bitclvx.com/post/golang-context/</guid>
+      <description>Context Checking about how to cancel requests I stepped onto the context package in golang.
+ Package context defines the Context type, which carries deadlines, cancellation signals, and other request-scoped values across API boundaries and between processes.
+ type Context interface { Deadline() (deadline time.Time, ok bool) Done() &amp;lt;- chan struct{} Err() error Value(key interface{}) interface{} } Context allows to cancel any work that is being done using timeouts or by external signals.</description>
+    </item>
     
     <item>
       <title>Golang HTTP Handlers</title>

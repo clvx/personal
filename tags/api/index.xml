@@ -6,11 +6,7 @@
     <description>Recent content in api on Periferia Binaria</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Fri, 15 May 2020 00:00:00 +0000</lastBuildDate>
-    
-	<atom:link href="https://blog.bitclvx.com/tags/api/index.xml" rel="self" type="application/rss+xml" />
-    
-    
+    <lastBuildDate>Fri, 15 May 2020 00:00:00 +0000</lastBuildDate><atom:link href="https://blog.bitclvx.com/tags/api/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Playing with the Kubernetes API</title>
       <link>https://blog.bitclvx.com/post/playing-k8s-api/</link>

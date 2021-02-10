@@ -3,8 +3,43 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
+    <loc>https://blog.bitclvx.com/tags/cancel/</loc>
+    <lastmod>2021-02-09T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.bitclvx.com/tags/context/</loc>
+    <lastmod>2021-02-09T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
     <loc>https://blog.bitclvx.com/tags/golang/</loc>
-    <lastmod>2020-11-23T00:00:00+00:00</lastmod>
+    <lastmod>2021-02-09T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.bitclvx.com/post/golang-context/</loc>
+    <lastmod>2021-02-09T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.bitclvx.com/tags/goroutine/</loc>
+    <lastmod>2021-02-09T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.bitclvx.com/</loc>
+    <lastmod>2021-02-09T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.bitclvx.com/post/</loc>
+    <lastmod>2021-02-09T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.bitclvx.com/tags/</loc>
+    <lastmod>2021-02-09T00:00:00+00:00</lastmod>
   </url>
   
   <url>
@@ -29,21 +64,6 @@
   
   <url>
     <loc>https://blog.bitclvx.com/tags/mux/</loc>
-    <lastmod>2020-11-23T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://blog.bitclvx.com/</loc>
-    <lastmod>2020-11-23T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://blog.bitclvx.com/post/</loc>
-    <lastmod>2020-11-23T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://blog.bitclvx.com/tags/</loc>
     <lastmod>2020-11-23T00:00:00+00:00</lastmod>
   </url>
   
