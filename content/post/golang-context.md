@@ -10,8 +10,6 @@ tags = [
 ]
 +++
 
-## Context
-
 Checking about how to cancel requests I stepped onto the context package in golang. 
 
 > Package context defines the Context type, which carries deadlines, cancellation signals,
@@ -81,8 +79,150 @@ not for passing optional parameters to functions.
 
 ## Some code
 
+
+    $cat main.go
+    package main
+
+    import (
+        "net/http"
+
+        "github.com/julienschmidt/httprouter"
+    )
+
+    func main() {
+        router := httprouter.New()
+        router.GET("/context/cancel/:delay", hedgedFunc)
+        router.GET("/context/cancel", hedgedFunc)
+        router.GET("/context/timeout/:delay", timeoutFunc)
+        router.GET("/context/timeout", timeoutFunc)
+        http.ListenAndServe(":8080", uuidMiddleware(router))
+    }
+
+The above code shows all the routes for the application. After running this code, 
+you can call it:
+
+    $curl localhost:8080/context/cancel         #default delay of 50ms
+    $curl localhost:8080/context/cance/100      #delay of 100ms
+    $curl localhost:8080/context/timeout        #default delay of 50ms
+    $curl localhost:8080/context/timeout/500    #delay of 500ms
+
+`hedgedFunc()` triggers hedged requests cancelling all the other goroutines after one
+of the requests finishes. This function presents the `context.WithCancel()` logic.
+
+`timeoutFunc` makes requests to a set of urls in sequential order. If the function 
+does not finish in the desire timeout, it cancels the context exiting finishing the 
+execution. This function presents the `context.WithTimeout`logic.
+
+`uuidMiddleware()` provides a middleware to add a request-scoped UUID 
+to identify the request using context values. This function presents the `context.WithValue` logic.
+
+Finally, all these contexts examples are derivative of `http.Request.Context` which 
+is the root context for the request.
+
+
+    $cat hedged.go
+    package main
+
+    import (
+        "context"
+        "fmt"
+        "io/ioutil"
+        "log"
+        "net/http"
+        neturl "net/url"
+        "strconv"
+        "time"
+
+        uuid "github.com/google/uuid"
+        "github.com/julienschmidt/httprouter"
+    )
+
+    var urls = []string{
+        "http://www.example.com",
+        "http://blog.bitclvx.com",
+    }
+    var timeout time.Duration
+
+    func getDelay(p httprouter.Params) (time.Duration, error) {
+        if p.ByName("delay") != "" {
+            delay, err := strconv.Atoi(p.ByName("delay"))
+            if err != nil {
+                return 0, err
+            }
+            return time.Duration(delay), nil
+        }
+        return time.Duration(50), nil
+    }
+
+    func hedgedFunc(w http.ResponseWriter, r *http.Request, param httprouter.Params) {
+        timeout, err := getDelay(param)
+        if err != nil {
+            w.WriteHeader(http.StatusNotFound)
+            return
+        }
+        ch := make(chan string, len(urls))
+        ctx, cancel := context.WithCancel(r.Context())
+        defer cancel()
+        for _, url := range urls {
+            go func(u string, c chan string) {
+                c <- executeQueryWithContext(u, ctx)
+            }(url, ch)
+
+            select {
+            case result := <-ch: //if channel returns, cancel context, and return results
+                fmt.Fprint(w, result)
+                cancel()
+            case <-time.After(timeout * time.Millisecond): //wait 21ms before making another request
+            }
+        }
+    }
+
+    func executeQueryWithContext(url string, ctx context.Context) string {
+        start := time.Now()
+        parsedUrl, _ := neturl.Parse(url)
+        req := &http.Request{URL: parsedUrl}
+        req = req.WithContext(ctx) //execute query with context.
+
+        response, err := http.DefaultClient.Do(req)
+
+        if err != nil {
+            fmt.Println(err.Error())
+            return err.Error()
+        }
+
+        defer response.Body.Close()
+        body, _ := ioutil.ReadAll(response.Body)
+        log.Printf("[%v] - Request time: %d ms from url%s\n", ctx.Value("uuid"), time.Since(start).Nanoseconds()/time.Millisecond.Nanoseconds(), url)
+        return fmt.Sprintf("%s from %s", body, url)
+    }
+
+    func timeoutFunc(w http.ResponseWriter, r *http.Request, param httprouter.Params) {
+        timeout, err := getDelay(param)
+        if err != nil {
+            w.WriteHeader(http.StatusNotFound)
+            return
+        }
+        ctx, cancel := context.WithTimeout(r.Context(), time.Duration(timeout)*time.Millisecond)
+        defer cancel()
+        for _, url := range urls {
+            executeQueryWithContext(url, ctx)
+        }
+        return
+    }
+
+    func uuidMiddleware(next http.Handler) http.Handler {
+        return http.HandlerFunc(
+            func(w http.ResponseWriter, r *http.Request) {
+                uuid := uuid.New()
+                r = r.WithContext(context.WithValue(r.Context(), "uuid", uuid))
+                next.ServeHTTP(w, r)
+            })
+    }
+
+
 ## Bibliography
 
 - https://golang.org/pkg/context
 - https://www.ardanlabs.com/blog/2019/09/context-package-semantics-in-go.html
 - https://blog.golang.org/context
+- https://medium.com/swlh/hedged-requests-tackling-tail-latency-9cea0a05f577

@@ -38,7 +38,7 @@ if (!doNotTrack) {
 </script>
 
   <meta property="og:title" content="Golang Context" />
-<meta property="og:description" content="Context Checking about how to cancel requests I stepped onto the context package in golang.
+<meta property="og:description" content="Checking about how to cancel requests I stepped onto the context package in golang.
  Package context defines the Context type, which carries deadlines, cancellation signals, and other request-scoped values across API boundaries and between processes.
  type Context interface { Deadline() (deadline time.Time, ok bool) Done() &lt;- chan struct{} Err() error Value(key interface{}) interface{} } Context allows to cancel any work that is being done using timeouts or by external signals." />
 <meta property="og:type" content="article" />
@@ -48,12 +48,12 @@ if (!doNotTrack) {
 
   
   <meta itemprop="name" content="Golang Context">
-<meta itemprop="description" content="Context Checking about how to cancel requests I stepped onto the context package in golang.
+<meta itemprop="description" content="Checking about how to cancel requests I stepped onto the context package in golang.
  Package context defines the Context type, which carries deadlines, cancellation signals, and other request-scoped values across API boundaries and between processes.
  type Context interface { Deadline() (deadline time.Time, ok bool) Done() &lt;- chan struct{} Err() error Value(key interface{}) interface{} } Context allows to cancel any work that is being done using timeouts or by external signals.">
 <meta itemprop="datePublished" content="2021-02-09T00:00:00+00:00" />
 <meta itemprop="dateModified" content="2021-02-09T00:00:00+00:00" />
-<meta itemprop="wordCount" content="500">
+<meta itemprop="wordCount" content="927">
 
 
 
@@ -61,7 +61,7 @@ if (!doNotTrack) {
 
   <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Golang Context"/>
-<meta name="twitter:description" content="Context Checking about how to cancel requests I stepped onto the context package in golang.
+<meta name="twitter:description" content="Checking about how to cancel requests I stepped onto the context package in golang.
  Package context defines the Context type, which carries deadlines, cancellation signals, and other request-scoped values across API boundaries and between processes.
  type Context interface { Deadline() (deadline time.Time, ok bool) Done() &lt;- chan struct{} Err() error Value(key interface{}) interface{} } Context allows to cancel any work that is being done using timeouts or by external signals."/>
 <meta name="twitter:site" content="@https://www.twitter.com/clvx"/>
@@ -100,8 +100,7 @@ if (!doNotTrack) {
     <h6 class="text-gray text-italic"></h6>
   </header>
   <section class="my-gap">
-    <h2 id="context">Context</h2>
-<p>Checking about how to cancel requests I stepped onto the context package in golang.</p>
+    <p>Checking about how to cancel requests I stepped onto the context package in golang.</p>
 <blockquote>
 <p>Package context defines the Context type, which carries deadlines, cancellation signals,
 and other request-scoped values across API boundaries and between processes.</p>
@@ -161,11 +160,145 @@ not for passing optional parameters to functions.</li>
 <li>Debugging or tracing data is safe to pass in a context.</li>
 </ul>
 <h2 id="some-code">Some code</h2>
+<pre><code>$cat main.go
+package main
+
+import (
+    &quot;net/http&quot;
+
+    &quot;github.com/julienschmidt/httprouter&quot;
+)
+
+func main() {
+    router := httprouter.New()
+    router.GET(&quot;/context/cancel/:delay&quot;, hedgedFunc)
+    router.GET(&quot;/context/cancel&quot;, hedgedFunc)
+    router.GET(&quot;/context/timeout/:delay&quot;, timeoutFunc)
+    router.GET(&quot;/context/timeout&quot;, timeoutFunc)
+    http.ListenAndServe(&quot;:8080&quot;, uuidMiddleware(router))
+}
+</code></pre>
+<p>The above code shows all the routes for the application. After running this code,
+you can call it:</p>
+<pre><code>$curl localhost:8080/context/cancel         #default delay of 50ms
+$curl localhost:8080/context/cance/100      #delay of 100ms
+$curl localhost:8080/context/timeout        #default delay of 50ms
+$curl localhost:8080/context/timeout/500    #delay of 500ms
+</code></pre>
+<p><code>hedgedFunc()</code> triggers hedged requests cancelling all the other goroutines after one
+of the requests finishes. This function presents the <code>context.WithCancel()</code> logic.</p>
+<p><code>timeoutFunc</code> makes requests to a set of urls in sequential order. If the function
+does not finish in the desire timeout, it cancels the context exiting finishing the
+execution. This function presents the <code>context.WithTimeout</code>logic.</p>
+<p><code>uuidMiddleware()</code> provides a middleware to add a request-scoped UUID
+to identify the request using context values. This function presents the <code>context.WithValue</code> logic.</p>
+<p>Finally, all these contexts examples are derivative of <code>http.Request.Context</code> which
+is the root context for the request.</p>
+<pre><code>$cat hedged.go
+package main
+
+import (
+    &quot;context&quot;
+    &quot;fmt&quot;
+    &quot;io/ioutil&quot;
+    &quot;log&quot;
+    &quot;net/http&quot;
+    neturl &quot;net/url&quot;
+    &quot;strconv&quot;
+    &quot;time&quot;
+
+    uuid &quot;github.com/google/uuid&quot;
+    &quot;github.com/julienschmidt/httprouter&quot;
+)
+
+var urls = []string{
+    &quot;http://www.example.com&quot;,
+    &quot;http://blog.bitclvx.com&quot;,
+}
+var timeout time.Duration
+
+func getDelay(p httprouter.Params) (time.Duration, error) {
+    if p.ByName(&quot;delay&quot;) != &quot;&quot; {
+        delay, err := strconv.Atoi(p.ByName(&quot;delay&quot;))
+        if err != nil {
+            return 0, err
+        }
+        return time.Duration(delay), nil
+    }
+    return time.Duration(50), nil
+}
+
+func hedgedFunc(w http.ResponseWriter, r *http.Request, param httprouter.Params) {
+    timeout, err := getDelay(param)
+    if err != nil {
+        w.WriteHeader(http.StatusNotFound)
+        return
+    }
+    ch := make(chan string, len(urls))
+    ctx, cancel := context.WithCancel(r.Context())
+    defer cancel()
+    for _, url := range urls {
+        go func(u string, c chan string) {
+            c &lt;- executeQueryWithContext(u, ctx)
+        }(url, ch)
+
+        select {
+        case result := &lt;-ch: //if channel returns, cancel context, and return results
+            fmt.Fprint(w, result)
+            cancel()
+        case &lt;-time.After(timeout * time.Millisecond): //wait 21ms before making another request
+        }
+    }
+}
+
+func executeQueryWithContext(url string, ctx context.Context) string {
+    start := time.Now()
+    parsedUrl, _ := neturl.Parse(url)
+    req := &amp;http.Request{URL: parsedUrl}
+    req = req.WithContext(ctx) //execute query with context.
+
+    response, err := http.DefaultClient.Do(req)
+
+    if err != nil {
+        fmt.Println(err.Error())
+        return err.Error()
+    }
+
+    defer response.Body.Close()
+    body, _ := ioutil.ReadAll(response.Body)
+    log.Printf(&quot;[%v] - Request time: %d ms from url%s\n&quot;, ctx.Value(&quot;uuid&quot;), time.Since(start).Nanoseconds()/time.Millisecond.Nanoseconds(), url)
+    return fmt.Sprintf(&quot;%s from %s&quot;, body, url)
+}
+
+func timeoutFunc(w http.ResponseWriter, r *http.Request, param httprouter.Params) {
+    timeout, err := getDelay(param)
+    if err != nil {
+        w.WriteHeader(http.StatusNotFound)
+        return
+    }
+    ctx, cancel := context.WithTimeout(r.Context(), time.Duration(timeout)*time.Millisecond)
+    defer cancel()
+    for _, url := range urls {
+        executeQueryWithContext(url, ctx)
+    }
+    return
+}
+
+func uuidMiddleware(next http.Handler) http.Handler {
+    return http.HandlerFunc(
+        func(w http.ResponseWriter, r *http.Request) {
+            uuid := uuid.New()
+            r = r.WithContext(context.WithValue(r.Context(), &quot;uuid&quot;, uuid))
+            next.ServeHTTP(w, r)
+        })
+}
+</code></pre>
 <h2 id="bibliography">Bibliography</h2>
 <ul>
 <li><a href="https://golang.org/pkg/context">https://golang.org/pkg/context</a></li>
 <li><a href="https://www.ardanlabs.com/blog/2019/09/context-package-semantics-in-go.html">https://www.ardanlabs.com/blog/2019/09/context-package-semantics-in-go.html</a></li>
 <li><a href="https://blog.golang.org/context">https://blog.golang.org/context</a></li>
+<li><a href="https://medium.com/swlh/hedged-requests-tackling-tail-latency-9cea0a05f577">https://medium.com/swlh/hedged-requests-tackling-tail-latency-9cea0a05f577</a></li>
 </ul>
 
 
