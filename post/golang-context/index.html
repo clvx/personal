@@ -229,7 +229,7 @@ func getDelay(p httprouter.Params) (time.Duration, error) {
 }
 
 func hedgedFunc(w http.ResponseWriter, r *http.Request, param httprouter.Params) {
-    timeout, err := getDelay(param)
+    delay, err := getDelay(param)
     if err != nil {
         w.WriteHeader(http.StatusNotFound)
         return
@@ -246,7 +246,7 @@ func hedgedFunc(w http.ResponseWriter, r *http.Request, param httprouter.Params)
         case result := &lt;-ch: //if channel returns, cancel context, and return results
             fmt.Fprint(w, result)
             cancel()
-        case &lt;-time.After(timeout * time.Millisecond): //wait 21ms before making another request
+        case &lt;-time.After(delay * time.Millisecond): //wait delay before making another request
         }
     }
 }

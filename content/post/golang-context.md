@@ -155,7 +155,7 @@ is the root context for the request.
     }
 
     func hedgedFunc(w http.ResponseWriter, r *http.Request, param httprouter.Params) {
-        timeout, err := getDelay(param)
+        delay, err := getDelay(param)
         if err != nil {
             w.WriteHeader(http.StatusNotFound)
             return
@@ -172,7 +172,7 @@ is the root context for the request.
             case result := <-ch: //if channel returns, cancel context, and return results
                 fmt.Fprint(w, result)
                 cancel()
-            case <-time.After(timeout * time.Millisecond): //wait 21ms before making another request
+            case <-time.After(delay * time.Millisecond): //wait delay before making another request
             }
         }
     }
