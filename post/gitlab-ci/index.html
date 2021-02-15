@@ -39,7 +39,7 @@ if (!doNotTrack) {
 
   <meta property="og:title" content="Gitlab Runners" />
 <meta property="og:description" content="Gitlab Runners are the core component to execute your automation for the Gitlab platform.
-Concepts Runners are pretty simple to manage. It consists on a golang binary which is deployed in a platform which can be a vm, container, etc. A platform can have one or more Gitlab Runners. Then, a runner can have only one executor which is the one that execute your jobs. An executor can be a shell, a docker container, ssh to jump to another host, or an orchestrator like Kubernetes, VirtualBox, or AWS." />
+Concepts Runners are pretty simple to manage. It consists on a golang binary which is deployed in a platform which can be a vm, container, etc. A platform can have one or more Gitlab Runners. Then, a runner can have one or more executors, but only one executor executes your jobs. An executor can be a shell, a docker container, ssh to jump to another host, or an orchestrator like Kubernetes, VirtualBox, or AWS." />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://blog.bitclvx.com/post/gitlab-ci/" />
 <meta property="article:published_time" content="2020-11-16T00:00:00+00:00" />
@@ -48,7 +48,7 @@ Concepts Runners are pretty simple to manage. It consists on a golang binary whi
   
   <meta itemprop="name" content="Gitlab Runners">
 <meta itemprop="description" content="Gitlab Runners are the core component to execute your automation for the Gitlab platform.
-Concepts Runners are pretty simple to manage. It consists on a golang binary which is deployed in a platform which can be a vm, container, etc. A platform can have one or more Gitlab Runners. Then, a runner can have only one executor which is the one that execute your jobs. An executor can be a shell, a docker container, ssh to jump to another host, or an orchestrator like Kubernetes, VirtualBox, or AWS.">
+Concepts Runners are pretty simple to manage. It consists on a golang binary which is deployed in a platform which can be a vm, container, etc. A platform can have one or more Gitlab Runners. Then, a runner can have one or more executors, but only one executor executes your jobs. An executor can be a shell, a docker container, ssh to jump to another host, or an orchestrator like Kubernetes, VirtualBox, or AWS.">
 <meta itemprop="datePublished" content="2020-11-16T00:00:00+00:00" />
 <meta itemprop="dateModified" content="2020-11-16T00:00:00+00:00" />
 <meta itemprop="wordCount" content="312">
@@ -60,7 +60,7 @@ Concepts Runners are pretty simple to manage. It consists on a golang binary whi
   <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Gitlab Runners"/>
 <meta name="twitter:description" content="Gitlab Runners are the core component to execute your automation for the Gitlab platform.
-Concepts Runners are pretty simple to manage. It consists on a golang binary which is deployed in a platform which can be a vm, container, etc. A platform can have one or more Gitlab Runners. Then, a runner can have only one executor which is the one that execute your jobs. An executor can be a shell, a docker container, ssh to jump to another host, or an orchestrator like Kubernetes, VirtualBox, or AWS."/>
+Concepts Runners are pretty simple to manage. It consists on a golang binary which is deployed in a platform which can be a vm, container, etc. A platform can have one or more Gitlab Runners. Then, a runner can have one or more executors, but only one executor executes your jobs. An executor can be a shell, a docker container, ssh to jump to another host, or an orchestrator like Kubernetes, VirtualBox, or AWS."/>
 <meta name="twitter:site" content="@https://www.twitter.com/clvx"/>
 
 </head>
@@ -101,8 +101,8 @@ Concepts Runners are pretty simple to manage. It consists on a golang binary whi
 <h2 id="concepts">Concepts</h2>
 <p>Runners are pretty simple to manage. It consists on a golang binary which is deployed
 in a platform which can be a vm, container, etc. A platform can have <em>one or more
-Gitlab Runners</em>. Then, a <code>runner</code> can have only <em>one executor</em> which is the one
-that execute your jobs. An <code>executor</code> can be a shell, a docker container, ssh to jump
+Gitlab Runners</em>. Then, a <code>runner</code> can have one or more executors, but only <em>one executor</em>
+executes your jobs. An <code>executor</code> can be a shell, a docker container, ssh to jump
 to another host, or an <em>orchestrator</em> like Kubernetes, VirtualBox, or AWS.</p>
 <h2 id="registration">Registration</h2>
 <p>After a <code>runner</code> is set up, it needs to be registered in Gitlab using <code>gitlab-runner register</code>.
