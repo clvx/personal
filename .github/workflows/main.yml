@@ -24,7 +24,7 @@ jobs:
     needs: build
     steps:
     - name: work around permission issue
-      run: git config --global --add safe.directory /__w/bitclvx-blog/bitclvx-blog
+      run: export GIT_CEILING_DIRECTORIES=/__w
     - uses: actions/checkout@v2
       with:
         persist-credentials: false
