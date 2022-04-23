@@ -23,6 +23,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
+    - name: work around permission issue
+      run: git config --global --add safe.directory /__w/clvx/bitclvx-blog
     - uses: actions/checkout@v2
       with:
         persist-credentials: false
