@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="author" content="Luis Michael Ibarra">
   <meta name="description" content="cat /dev/brain 2&amp;&gt; /dev/null">
-  <meta name="generator" content="Hugo 0.79.1" />
+  <meta name="generator" content="Hugo 0.89.4" />
 
   <title>Docker Networking and Linux Namespaces Deep Dive &middot; Periferia Binaria</title>
 
@@ -36,29 +36,24 @@ if (!doNotTrack) {
 	ga('send', 'pageview');
 }
 </script>
-
   <meta property="og:title" content="Docker Networking and Linux Namespaces Deep Dive" />
 <meta property="og:description" content="This is a write up of my docker networking demo at the Docker Orlando meetup.
 Let&rsquo;s begin with the diagram.
 We can see in figure 1 a server which can be a physical device or a vm(cloud or not) connected to the Internet by an interface ens3 as its gateway interface - ens3 because kvm configures it by default. Then we have four Linux bridges. One is docker0 which is the default linux bridge configured when Docker is set up." />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="https://blog.bitclvx.com/post/docker-networking/" />
+<meta property="og:url" content="https://blog.bitclvx.com/post/docker-networking/" /><meta property="article:section" content="post" />
 <meta property="article:published_time" content="2017-05-20T00:00:00+00:00" />
 <meta property="article:modified_time" content="2017-05-20T00:00:00+00:00" />
+
 
   
   <meta itemprop="name" content="Docker Networking and Linux Namespaces Deep Dive">
 <meta itemprop="description" content="This is a write up of my docker networking demo at the Docker Orlando meetup.
 Let&rsquo;s begin with the diagram.
-We can see in figure 1 a server which can be a physical device or a vm(cloud or not) connected to the Internet by an interface ens3 as its gateway interface - ens3 because kvm configures it by default. Then we have four Linux bridges. One is docker0 which is the default linux bridge configured when Docker is set up.">
-<meta itemprop="datePublished" content="2017-05-20T00:00:00+00:00" />
+We can see in figure 1 a server which can be a physical device or a vm(cloud or not) connected to the Internet by an interface ens3 as its gateway interface - ens3 because kvm configures it by default. Then we have four Linux bridges. One is docker0 which is the default linux bridge configured when Docker is set up."><meta itemprop="datePublished" content="2017-05-20T00:00:00+00:00" />
 <meta itemprop="dateModified" content="2017-05-20T00:00:00+00:00" />
 <meta itemprop="wordCount" content="4733">
-
-
-
 <meta itemprop="keywords" content="docker,namespaces,networking," />
-
   <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Docker Networking and Linux Namespaces Deep Dive"/>
 <meta name="twitter:description" content="This is a write up of my docker networking demo at the Docker Orlando meetup.
@@ -166,44 +161,44 @@ to be restarted. Options of this bridge can be found in <code>docker network ins
 </ul>
 <p>Let&rsquo;s configure the docker0 bridge. As we said previously, this is pretty much configured
 at installation time. But let&rsquo;s take a look to the network environment before doing it.</p>
-<pre><code>    $iptables -L -v &amp;&amp; sudo iptables -t nat -L -v
-    Chain INPUT (policy ACCEPT 0 packets, 0 bytes)
-     pkts bytes target     prot opt in     out     source               destination
+<pre><code>	$iptables -L -v &amp;&amp; sudo iptables -t nat -L -v
+	Chain INPUT (policy ACCEPT 0 packets, 0 bytes)
+	 pkts bytes target     prot opt in     out     source               destination
 
-    Chain FORWARD (policy ACCEPT 0 packets, 0 bytes)
-     pkts bytes target     prot opt in     out     source               destination
+	Chain FORWARD (policy ACCEPT 0 packets, 0 bytes)
+	 pkts bytes target     prot opt in     out     source               destination
 
-    Chain OUTPUT (policy ACCEPT 0 packets, 0 bytes)
-     pkts bytes target     prot opt in     out     source               destination
-    Chain PREROUTING (policy ACCEPT 0 packets, 0 bytes)
-     pkts bytes target     prot opt in     out     source               destination
+	Chain OUTPUT (policy ACCEPT 0 packets, 0 bytes)
+	 pkts bytes target     prot opt in     out     source               destination
+	Chain PREROUTING (policy ACCEPT 0 packets, 0 bytes)
+	 pkts bytes target     prot opt in     out     source               destination
 
-    Chain INPUT (policy ACCEPT 0 packets, 0 bytes)
-     pkts bytes target     prot opt in     out     source               destination
+	Chain INPUT (policy ACCEPT 0 packets, 0 bytes)
+	 pkts bytes target     prot opt in     out     source               destination
 
-    Chain OUTPUT (policy ACCEPT 0 packets, 0 bytes)
-     pkts bytes target     prot opt in     out     source               destination
+	Chain OUTPUT (policy ACCEPT 0 packets, 0 bytes)
+	 pkts bytes target     prot opt in     out     source               destination
 
-    Chain POSTROUTING (policy ACCEPT 0 packets, 0 bytes)
-     pkts bytes target     prot opt in     out     source               destination
+	Chain POSTROUTING (policy ACCEPT 0 packets, 0 bytes)
+	 pkts bytes target     prot opt in     out     source               destination
 
-    $ip addr show
-    1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1
-        link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
-        inet 127.0.0.1/8 scope host lo
-           valid_lft forever preferred_lft forever
-        inet6 ::1/128 scope host
-           valid_lft forever preferred_lft forever
-    2: ens3: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
-        link/ether 52:54:00:43:8b:a8 brd ff:ff:ff:ff:ff:ff
-        inet 192.168.122.194/24 brd 192.168.122.255 scope global ens3
-           valid_lft forever preferred_lft forever
-        inet6 fe80::5054:ff:fe43:8ba8/64 scope link
-           valid_lft forever preferred_lft forever
+	$ip addr show
+	1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1
+		link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+		inet 127.0.0.1/8 scope host lo
+		   valid_lft forever preferred_lft forever
+		inet6 ::1/128 scope host
+		   valid_lft forever preferred_lft forever
+	2: ens3: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
+		link/ether 52:54:00:43:8b:a8 brd ff:ff:ff:ff:ff:ff
+		inet 192.168.122.194/24 brd 192.168.122.255 scope global ens3
+		   valid_lft forever preferred_lft forever
+		inet6 fe80::5054:ff:fe43:8ba8/64 scope link
+		   valid_lft forever preferred_lft forever
 
-    $ip route show
-    default via 192.168.122.1 dev ens3
-    192.168.122.0/24 dev ens3  proto kernel  scope link  src 192.168.122.194
+	$ip route show
+	default via 192.168.122.1 dev ens3
+	192.168.122.0/24 dev ens3  proto kernel  scope link  src 192.168.122.194
 </code></pre>
 <p>Iptables is accepting everything with no rules defined. Also, the routing table only
 shows the directly connected interface and the default gateway rule. Last, there&rsquo;s only
@@ -213,48 +208,48 @@ Let&rsquo;s install docker.</p>
     $sudo add-apt-repository &quot;deb [arch=amd64] https://download.docker.com/linux/ubuntu  $(lsb_release -cs) stable&quot;
     $sudo apt update &amp;&amp; sudo apt install docker-ce -y
 
-    # Output might be slightly different from yours
-    $sudo iptables -L -v &amp;&amp; sudo iptables -t nat -L -v
-    Chain FORWARD (policy DROP 0 packets, 0 bytes)
-     pkts bytes target     prot opt in     out     source               destination
-        0     0 DOCKER-ISOLATION  all  --  any    any     anywhere             anywhere
-        0     0 DOCKER     all  --  any    docker0  anywhere             anywhere
-        0     0 ACCEPT     all  --  any    docker0  anywhere             anywhere             ctstate RELATED,ESTABLISHED
-        0     0 ACCEPT     all  --  docker0 !docker0  anywhere             anywhere
-        0     0 ACCEPT     all  --  docker0 docker0  anywhere             anywhere
+	# Output might be slightly different from yours
+	$sudo iptables -L -v &amp;&amp; sudo iptables -t nat -L -v
+	Chain FORWARD (policy DROP 0 packets, 0 bytes)
+	 pkts bytes target     prot opt in     out     source               destination
+		0     0 DOCKER-ISOLATION  all  --  any    any     anywhere             anywhere
+		0     0 DOCKER     all  --  any    docker0  anywhere             anywhere
+		0     0 ACCEPT     all  --  any    docker0  anywhere             anywhere             ctstate RELATED,ESTABLISHED
+		0     0 ACCEPT     all  --  docker0 !docker0  anywhere             anywhere
+		0     0 ACCEPT     all  --  docker0 docker0  anywhere             anywhere
 
-    Chain DOCKER (1 references)
-     pkts bytes target     prot opt in     out     source               destination
+	Chain DOCKER (1 references)
+	 pkts bytes target     prot opt in     out     source               destination
 
-    Chain DOCKER-ISOLATION (1 references)
-     pkts bytes target     prot opt in     out     source               destination
-        0     0 RETURN     all  --  any    any     anywhere             anywhere
+	Chain DOCKER-ISOLATION (1 references)
+	 pkts bytes target     prot opt in     out     source               destination
+		0     0 RETURN     all  --  any    any     anywhere             anywhere
 
 
-    Chain PREROUTING (policy ACCEPT 0 packets, 0 bytes)
-     pkts bytes target     prot opt in     out     source               destination
-        0     0 DOCKER     all  --  any    any     anywhere             anywhere             ADDRTYPE match dst-type LOCAL
+	Chain PREROUTING (policy ACCEPT 0 packets, 0 bytes)
+	 pkts bytes target     prot opt in     out     source               destination
+		0     0 DOCKER     all  --  any    any     anywhere             anywhere             ADDRTYPE match dst-type LOCAL
 
-    Chain OUTPUT (policy ACCEPT 2 packets, 137 bytes)
-     pkts bytes target     prot opt in     out     source               destination
-        0     0 DOCKER     all  --  any    any     anywhere            !localhost/8          ADDRTYPE match dst-type LOCAL
+	Chain OUTPUT (policy ACCEPT 2 packets, 137 bytes)
+	 pkts bytes target     prot opt in     out     source               destination
+		0     0 DOCKER     all  --  any    any     anywhere            !localhost/8          ADDRTYPE match dst-type LOCAL
 
-    Chain POSTROUTING (policy ACCEPT 2 packets, 137 bytes)
-     pkts bytes target     prot opt in     out     source               destination
-        0     0 MASQUERADE  all  --  any    !docker0  172.17.0.0/16        anywhere
+	Chain POSTROUTING (policy ACCEPT 2 packets, 137 bytes)
+	 pkts bytes target     prot opt in     out     source               destination
+		0     0 MASQUERADE  all  --  any    !docker0  172.17.0.0/16        anywhere
 
-    Chain DOCKER (2 references)
-     pkts bytes target     prot opt in     out     source               destination
-        0     0 RETURN     all  --  docker0 any     anywhere             anywhere
+	Chain DOCKER (2 references)
+	 pkts bytes target     prot opt in     out     source               destination
+		0     0 RETURN     all  --  docker0 any     anywhere             anywhere
 
-    $ip addr show
-    3: docker0: &lt;NO-CARRIER,BROADCAST,MULTICAST,UP&gt; mtu 1500 qdisc noqueue state DOWN group default
-        link/ether 02:42:be:33:09:ba brd ff:ff:ff:ff:ff:ff
-        inet 172.17.0.1/16 scope global docker0
-           valid_lft forever preferred_lft forever
+	$ip addr show
+	3: docker0: &lt;NO-CARRIER,BROADCAST,MULTICAST,UP&gt; mtu 1500 qdisc noqueue state DOWN group default
+		link/ether 02:42:be:33:09:ba brd ff:ff:ff:ff:ff:ff
+		inet 172.17.0.1/16 scope global docker0
+		   valid_lft forever preferred_lft forever
 
-    $ip route show
-    172.17.0.0/16 dev docker0  proto kernel  scope link  src 172.17.0.1 linkdown
+	$ip route show
+	172.17.0.0/16 dev docker0  proto kernel  scope link  src 172.17.0.1 linkdown
 </code></pre>
 <p>First of all, Docker enables ip forwarding at the kernel level(<code>echo 1 &gt; /proc/sys/net/ipv4/ip_forward</code>)
 to have  communication between internal and external hosts.In addition, it creates some
@@ -922,7 +917,7 @@ openstack and many others.</li>
 
   <small class="text-gray">
   
-    © Copyright 2021 Luis Michael Ibarra
+    © Copyright 2022 Luis Michael Ibarra
   
   </small>
 </footer>
@@ -949,7 +944,6 @@ if (!doNotTrack) {
 	ga('send', 'pageview');
 }
 </script>
-
 
 </body>
 </html>

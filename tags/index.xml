@@ -6,7 +6,43 @@
     <description>Recent content in Tags on Periferia Binaria</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Tue, 09 Feb 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://blog.bitclvx.com/tags/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 23 Apr 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://blog.bitclvx.com/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>golang</title>
+      <link>https://blog.bitclvx.com/tags/golang/</link>
+      <pubDate>Sat, 23 Apr 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://blog.bitclvx.com/tags/golang/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>mirror</title>
+      <link>https://blog.bitclvx.com/tags/mirror/</link>
+      <pubDate>Sat, 23 Apr 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://blog.bitclvx.com/tags/mirror/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>modules</title>
+      <link>https://blog.bitclvx.com/tags/modules/</link>
+      <pubDate>Sat, 23 Apr 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://blog.bitclvx.com/tags/modules/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>mvs</title>
+      <link>https://blog.bitclvx.com/tags/mvs/</link>
+      <pubDate>Sat, 23 Apr 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://blog.bitclvx.com/tags/mvs/</guid>
+      <description></description>
+    </item>
+    
     <item>
       <title>cancel</title>
       <link>https://blog.bitclvx.com/tags/cancel/</link>
@@ -22,15 +58,6 @@
       <pubDate>Tue, 09 Feb 2021 00:00:00 +0000</pubDate>
       
       <guid>https://blog.bitclvx.com/tags/context/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>golang</title>
-      <link>https://blog.bitclvx.com/tags/golang/</link>
-      <pubDate>Tue, 09 Feb 2021 00:00:00 +0000</pubDate>
-      
-      <guid>https://blog.bitclvx.com/tags/golang/</guid>
       <description></description>
     </item>
     

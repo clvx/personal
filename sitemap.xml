@@ -1,159 +1,109 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
-  
-  <url>
-    <loc>https://blog.bitclvx.com/tags/cancel/</loc>
-    <lastmod>2021-02-09T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://blog.bitclvx.com/tags/context/</loc>
-    <lastmod>2021-02-09T00:00:00+00:00</lastmod>
-  </url>
-  
   <url>
     <loc>https://blog.bitclvx.com/tags/golang/</loc>
+    <lastmod>2022-04-23T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://blog.bitclvx.com/post/al-service-modules/</loc>
+    <lastmod>2022-04-23T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://blog.bitclvx.com/tags/mirror/</loc>
+    <lastmod>2022-04-23T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://blog.bitclvx.com/tags/modules/</loc>
+    <lastmod>2022-04-23T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://blog.bitclvx.com/tags/mvs/</loc>
+    <lastmod>2022-04-23T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://blog.bitclvx.com/</loc>
+    <lastmod>2022-04-23T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://blog.bitclvx.com/post/</loc>
+    <lastmod>2022-04-23T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://blog.bitclvx.com/tags/</loc>
+    <lastmod>2022-04-23T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://blog.bitclvx.com/tags/cancel/</loc>
     <lastmod>2021-02-09T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
+    <loc>https://blog.bitclvx.com/tags/context/</loc>
+    <lastmod>2021-02-09T00:00:00+00:00</lastmod>
+  </url><url>
     <loc>https://blog.bitclvx.com/post/golang-context/</loc>
     <lastmod>2021-02-09T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://blog.bitclvx.com/tags/goroutine/</loc>
     <lastmod>2021-02-09T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://blog.bitclvx.com/</loc>
-    <lastmod>2021-02-09T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://blog.bitclvx.com/post/</loc>
-    <lastmod>2021-02-09T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://blog.bitclvx.com/tags/</loc>
-    <lastmod>2021-02-09T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://blog.bitclvx.com/post/golang-handler/</loc>
     <lastmod>2020-11-23T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://blog.bitclvx.com/tags/handlers/</loc>
     <lastmod>2020-11-23T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://blog.bitclvx.com/tags/http/</loc>
     <lastmod>2020-11-23T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://blog.bitclvx.com/tags/middleware/</loc>
     <lastmod>2020-11-23T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://blog.bitclvx.com/tags/mux/</loc>
     <lastmod>2020-11-23T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://blog.bitclvx.com/tags/cd/</loc>
     <lastmod>2020-11-16T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://blog.bitclvx.com/tags/ci/</loc>
     <lastmod>2020-11-16T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://blog.bitclvx.com/tags/gitlab/</loc>
     <lastmod>2020-11-16T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://blog.bitclvx.com/post/gitlab-ci/</loc>
     <lastmod>2020-11-16T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://blog.bitclvx.com/tags/runner/</loc>
     <lastmod>2020-11-16T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://blog.bitclvx.com/tags/api/</loc>
     <lastmod>2020-05-15T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://blog.bitclvx.com/tags/kubcetl/</loc>
     <lastmod>2020-05-15T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://blog.bitclvx.com/tags/kubernetes/</loc>
     <lastmod>2020-05-15T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://blog.bitclvx.com/post/playing-k8s-api/</loc>
     <lastmod>2020-05-15T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://blog.bitclvx.com/tags/watch/</loc>
     <lastmod>2020-05-15T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://blog.bitclvx.com/post/cert-manager/</loc>
     <lastmod>2020-03-07T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://blog.bitclvx.com/tags/cert-manager/</loc>
     <lastmod>2020-03-07T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://blog.bitclvx.com/tags/security/</loc>
     <lastmod>2020-03-07T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://blog.bitclvx.com/tags/docker/</loc>
     <lastmod>2017-05-20T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://blog.bitclvx.com/post/docker-networking/</loc>
     <lastmod>2017-05-20T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://blog.bitclvx.com/tags/namespaces/</loc>
     <lastmod>2017-05-20T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://blog.bitclvx.com/tags/networking/</loc>
     <lastmod>2017-05-20T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://blog.bitclvx.com/about/</loc>
   </url>
-  
 </urlset>

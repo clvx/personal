@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="Luis Michael Ibarra">
+  <meta name="description" content="cat /dev/brain 2&amp;&gt; /dev/null">
+  <meta name="generator" content="Hugo 0.89.4" />
+
+  <title>Golang Modules &middot; Periferia Binaria</title>
+
+  <link rel="shortcut icon" href="https://blog.bitclvx.com/images/favicon.ico">
+  <link rel="stylesheet" href="https://blog.bitclvx.com/css/spectre.min.css">
+  <link rel="stylesheet" href="https://blog.bitclvx.com/css/style.css">
+  <link rel="stylesheet" href="https://blog.bitclvx.com/css/highlight.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.9.0/css/all.min.css">
+  
+    <link rel="stylesheet" href="https://cdn.rawgit.com/konpa/devicon/df6431e323547add1b4cf45992913f15286456d3/devicon.min.css">
+  
+
+  
+    <link href="" rel="alternate" type="application/rss+xml" title="Periferia Binaria" />
+  
+
+  
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-166845382-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+  <meta property="og:title" content="Golang Modules" />
+<meta property="og:description" content="go modules ayuda a manejar tus dependencias de golang.
+Proyecto Es un repositorio de código. Algunas veces estos proyectos pueden contener paquetes que ayudan a construir otros programas. Otras veces son aplicaciones que producen un binario. Un proyecto puede manejar más de una aplicación o más de un paquete.
+El proyecto ayuda a definir el diseño, estándares y consistencia del proyecto para todo el equipo lo cual implica que todos los miembros sigan los mismos objetivos." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.bitclvx.com/post/al-service-modules/" /><meta property="article:section" content="post" />
+<meta property="article:published_time" content="2022-04-23T00:00:00+00:00" />
+<meta property="article:modified_time" content="2022-04-23T00:00:00+00:00" />
+
+
+  
+  <meta itemprop="name" content="Golang Modules">
+<meta itemprop="description" content="go modules ayuda a manejar tus dependencias de golang.
+Proyecto Es un repositorio de código. Algunas veces estos proyectos pueden contener paquetes que ayudan a construir otros programas. Otras veces son aplicaciones que producen un binario. Un proyecto puede manejar más de una aplicación o más de un paquete.
+El proyecto ayuda a definir el diseño, estándares y consistencia del proyecto para todo el equipo lo cual implica que todos los miembros sigan los mismos objetivos."><meta itemprop="datePublished" content="2022-04-23T00:00:00+00:00" />
+<meta itemprop="dateModified" content="2022-04-23T00:00:00+00:00" />
+<meta itemprop="wordCount" content="713">
+<meta itemprop="keywords" content="golang,modules,mirror,mvs," />
+  <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Golang Modules"/>
+<meta name="twitter:description" content="go modules ayuda a manejar tus dependencias de golang.
+Proyecto Es un repositorio de código. Algunas veces estos proyectos pueden contener paquetes que ayudan a construir otros programas. Otras veces son aplicaciones que producen un binario. Un proyecto puede manejar más de una aplicación o más de un paquete.
+El proyecto ayuda a definir el diseño, estándares y consistencia del proyecto para todo el equipo lo cual implica que todos los miembros sigan los mismos objetivos."/>
+<meta name="twitter:site" content="@https://www.twitter.com/clvx"/>
+
+</head>
+
+<body onload="setPixelFont()">
+  <div class="container p-fixed" style="z-index:3">
+  <nav class="navbar m-2 p-2 s-rounded shadow bg-primary">
+    <section class="navbar-section">
+      <button class="btn btn-action btn-primary s-circle text-gray" id="pixelfont-toggle"><i class="fas fa-robot fa-lg"></i></button>
+    </section>
+    <section class="navbar-section">
+      
+        <a class="btn btn-primary" href='https://blog.bitclvx.com/'>Home</a>
+      
+
+      
+        <a class="btn btn-primary mx-2" href="https://blog.bitclvx.com/about/">About</a>
+      
+
+      
+      <a class="btn btn-accent" href="" target="_blank"><i class="fas fa-rss fa-lg"></i></a>
+      
+    </section>
+  </nav>
+</div>
+
+  <section class="container grid-md">
+  <div class="columns">
+    
+    
+<article class="container p-centered mt-space">
+  <header>
+    <h2 class="text-center">Golang Modules</h2>
+    <h6 class="text-gray text-italic"></h6>
+  </header>
+  <section class="my-gap">
+    <p><em>go modules</em> ayuda a manejar tus dependencias de golang.</p>
+<h2 id="proyecto">Proyecto</h2>
+<p>Es un repositorio de código. Algunas veces estos proyectos pueden contener paquetes
+que ayudan a construir otros programas. Otras veces son aplicaciones que producen
+un binario. Un proyecto puede manejar más de una aplicación o más de un paquete.</p>
+<p>El proyecto ayuda a definir el diseño, estándares y consistencia del proyecto para
+todo el equipo lo cual implica que todos los miembros sigan los mismos objetivos.
+De la misma manera, tener más de un proyecto incurre en la probabilidad de que
+los estándares sean diferentes.</p>
+<h2 id="inicialización">Inicialización</h2>
+<p>Permite inicializar un proyecto de golang definiendo donde se encuentra su raíz.</p>
+<pre><code>$go mod init &lt;name&gt; #inicializa un proyecto en un namespace
+$go mod init github.com/clvx/golang-lab #convención es utilizar url para el nombre
+</code></pre>
+<p><em>go mod init</em> crea el archivo <em>go.mod</em> que indica a las herramientas de golang
+que éste es un proyecto de golang que utiliza go modules donde específica el nombre
+y directorio raíz del proyecto. Debería haber un solo <code>go.mod</code> por proyecto; sin
+embargo, si se mantienen varios servicios se puede utilizar directorios donde cada
+uno tiene su propio <code>go.mod</code> en vez de crear un proyecto (alias repositorio) para
+cada uno de los servicios.</p>
+<pre><code>$cat go.mod
+module github.com/clvx/golang-lab
+
+go 1.18
+</code></pre>
+<p>La versión de go en <em>go.mod</em> refiere a que el proyecto es compatible con versiones
+mayor o igual a <em>1.18</em> pero no con versiones inferiores a <code>1.18</code>.</p>
+<h2 id="obteniendo-dependencias">Obteniendo dependencias</h2>
+<p>Las dependencias de un proyecto go son descargadas en el directorio cache definido
+en la variable de entorno <code>GOMODCACHE</code> para poder compilar el proyecto.</p>
+<pre><code>$cat main.go
+package main
+
+import (
+    &quot;github.com/clvx/conf&quot;
+)
+
+func main() {
+    conf.New() #crea un error
+}
+
+$go mod tidy #descargando dependencias
+
+$go env GOMODCACHE
+/home/clvx/go/pkg/mod
+
+$ls $(go env GOMODCACHE) #listando las dependencias localmente
+github.com/clvx/conf
+</code></pre>
+<p><code>gopls</code> utiliza <code>GOMODCACHE</code> para habilitar IntelliSense en dependencias.</p>
+<h3 id="go-mod-tidy">go mod tidy</h3>
+<p><code>go mod tidy</code> verifica las dependencias del paquete, busca cada una las dependencias
+de acuerdo a <code>GOPROXY</code>, devuelve las versiones vigentes, y realiza una petición
+para obtener la versión más apropiada para compilar la aplicación, el servidor
+retorna un archivo comprimido zip con el código que se descarga y descomprime
+en <code>$(go env GOMODCACHE)</code>. Luego, modifica <code>go.mod</code> actualizando las dependencias
+con sus versiones y actualiza <code>go.sum</code> añadiendo un hash basado en <code>go.mod</code> y otro
+basado en <code>go.sum</code> y <code>go.mod</code> verificándolos con la <em>Checksum DB</em> que mantiene
+Google si no existieran.</p>
+<pre><code>$go mod GOPROXY
+https://proxy.golang.org,direct
+
+$cat go.mod
+module github.com/clvx/golang-lab
+
+go 1.18
+
+require github.com/clvx/conf v1.0
+
+$cat go.sum
+github.com/clvx/conf v1.0 h1:&lt;hash_value&gt;
+github.com/clvx/conf v1.0/go.mod h1:&lt;hash_value&gt;
+</code></pre>
+<p>La variable de entorno <code>GOPROXY</code> indica el lugar de descarga del código fuente
+de las dependencias. Por defecto <code>GOPROXY</code> utiliza los servidores de google como
+el proxy por defecto. El servidor proxy funciona buscando en su base de datos si
+existe el paquete con la versión apropiada para descargar, si no existe, se conecta
+con el repositorio fuente (e.j. <code>github.com/clvx/conf</code>) y obtiene un snapshot de
+ese paquete y lo guarda en su base de datos, luego retorna la respuesta con el
+paquete comprimido a <code>go mod tidy</code>. Si existiera el paquete, retorna la respuesta
+con el paquete comprimido a <code>go mod tidy</code>.</p>
+<p>Sin embargo, la opción <code>direct</code> de <code>GOPROXY</code> sirve para casos donde se utiliza
+VCS privados donde el proxy de google no tiene acceso. Además, si se require
+evitar el proxy de google completamente, se puede definir la la variable de entorno
+<code>GONOPROXY</code> con los dominios que se quieren evitar.</p>
+<pre><code>$export GONOPROXY=&quot;github.com&quot; #set GONOPROXY
+
+$go env GONOPROXY
+github.com
+
+$unset GONOPROXY #unsets GONOPROXY
+</code></pre>
+<h3 id="vendor">Vendor</h3>
+<p><code>go mod vendor</code> permite includir las dependencias definidas en <code>go.mod</code> que han
+sido descargadas en <code>GOMODCACHE</code> dentro del proyecto en el directorio <code>vendor/</code>.
+Vendoring es importante para compilar tu proyecto en case las dependencias no
+se pueden acceder por cualquier razón.</p>
+<pre><code>go mod vendor
+</code></pre>
+<h3 id="minimal-version-selection---mvs">Minimal Version Selection - MVS</h3>
+<p>When installing or updating dependencies, <a href="https://research.swtch.com/vgo-mvs">Minimal Version Selection</a>
+always selects the minimal (oldest) module version that satisfies the overall
+requirements of a build.</p>
+<h3 id="athens">Athens</h3>
+<p><a href="https://gomods.io/">Athens</a> es un servidor proxy open source para desplegar en tus
+propios entornos. Para poder utilizar <em>Athens</em> se modifica <code>GOPROXY</code> apuntando al
+servidor proxy local. <em>Athens</em> también permite conectarse al servidor proxy de
+Google o configurarlo para conectarse a las diferentes fuentes sin pasar por
+Google. Es una buena manera para manejar tus dependencias localmente o aumentar
+tu privacidad.</p>
+
+
+    
+      <code class="text-bold">Tags</code> 
+      
+        <a class="chip text-accent" href="https://blog.bitclvx.com/tags/golang">golang</a>
+      
+        <a class="chip text-accent" href="https://blog.bitclvx.com/tags/modules">modules</a>
+      
+        <a class="chip text-accent" href="https://blog.bitclvx.com/tags/mirror">mirror</a>
+      
+        <a class="chip text-accent" href="https://blog.bitclvx.com/tags/mvs">mvs</a>
+      
+    
+  </section>
+  <div class="divider my-gap"></div>
+  <footer class="col-12 d-inline-block">
+    <span class="float-left">
+      <button class="btn btn-action btn-accent shadow s-circle" onclick="window.history.back();"><i class="fas fa-arrow-left"></i></button>
+    </span>
+    <span class="float-right">
+      <div class="text-right float-left mx-2">
+        <span class="text-dark">Luis Michael Ibarra</span><br>
+        <span class="text-gray">I build, break, fix, and run stuff professionaly</span>
+      </div>
+      <figure class="avatar avatar-lg">
+        <img id="profile">
+      </figure>
+    </span>
+  </footer>
+</article>
+
+    <footer class="container p-centered text-center my-gap">
+  
+    <div class="container">
+
+  
+    <a class="symbol" href="https://www.github.com/clvx" target="_blank"><i class="fab fa-github"></i>
+  
+  </a>
+
+  
+    <a class="symbol" href="https://www.linkedin.com/in/clvx" target="_blank"><i class="fab fa-linkedin"></i>
+  
+  </a>
+
+  
+    <a class="symbol" href="https://www.twitter.com/clvx" target="_blank"><i class="fab fa-twitter"></i>
+  
+  </a>
+
+</div>
+
+  
+
+  <small class="text-gray">
+  
+    © Copyright 2022 Luis Michael Ibarra
+  
+  </small>
+</footer>
+
+  </div>
+  </section>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="https://blog.bitclvx.com/js/main.js"></script>
+<script src="https://blog.bitclvx.com/js/highlight.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-166845382-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>mvs on Periferia Binaria</title>
+    <link>https://blog.bitclvx.com/tags/mvs/</link>
+    <description>Recent content in mvs on Periferia Binaria</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sat, 23 Apr 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://blog.bitclvx.com/tags/mvs/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Golang Modules</title>
+      <link>https://blog.bitclvx.com/post/al-service-modules/</link>
+      <pubDate>Sat, 23 Apr 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://blog.bitclvx.com/post/al-service-modules/</guid>
+      <description>go modules ayuda a manejar tus dependencias de golang.
+Proyecto Es un repositorio de código. Algunas veces estos proyectos pueden contener paquetes que ayudan a construir otros programas. Otras veces son aplicaciones que producen un binario. Un proyecto puede manejar más de una aplicación o más de un paquete.
+El proyecto ayuda a definir el diseño, estándares y consistencia del proyecto para todo el equipo lo cual implica que todos los miembros sigan los mismos objetivos.</description>
+    </item>
+    
+  </channel>
+</rss>
