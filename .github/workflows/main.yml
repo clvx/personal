@@ -10,6 +10,8 @@ jobs:
     name: Build site
     runs-on: ubuntu-latest
     steps:
+    - name: work around permission issue
+      run: export GIT_CEILING_DIRECTORIES=/__w
     - uses: actions/checkout@v1
     - uses: clvx/hugo-action@master
     - uses: actions/upload-artifact@v1
