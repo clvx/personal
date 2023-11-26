@@ -10,7 +10,7 @@ menu: "main"
 ### Development Skills
 {{< tag nixos >}}
 {{< tag go >}}
-{{< postgresql >}}
+{{< tag postgresql >}}
 {{< tag linux >}}
 {{< tag kubernetes >}}
 {{< tag docker >}}
