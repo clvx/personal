@@ -11,7 +11,7 @@ pkgs.mkShell {
    postShellHook = ''
     if [ -d .git/modules ]; then
       echo 'Running post shell hook...'
-      git submodule update --init --recursive
+      git submodule update --init --recursive --remote
     fi
   '';
 }
