@@ -1,21 +1,36 @@
 ![](https://github.com/clvx/bitclvx-blog/workflows/CI/badge.svg)
 
-# Blog
+# Personal website
 
-Bitclvx blog
+[ ] Need to fix CI
+
+## Version
+
+    hugo            v0.126.1
+    lukeorth/poison 07485e
+    go              1.22.5
 
 ## Installation
 
-    sudo snap install hugo
+    nix-shell -p hugo --run zsh
+    hugo
     
-## Work locally
+## local development
 
-    git clone git@github.com:clvx/bitclvx-blog.git
-    cd bitclvx-blog
+    #cloning
+    git clone git@github.com:clvx/personal.git
+    cd personal
+
     #Obtain theme
     git submodule init
     git submodule update
-    hugo
+
+    #run server
+    hugo server
+
+    #Upgrading theme
+    git submodule fetch
+    git submodule update --remote --merge
 
 ## CI
 

@@ -8,6 +8,7 @@ tags = [
     "cd",
     "runner",
 ]
+draft = true
 +++
 
 Gitlab Runners are the core component to execute your automation for the Gitlab platform.
