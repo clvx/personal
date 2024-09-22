@@ -2,10 +2,7 @@
 
 # Personal website
 
-## TODO
-
-[ ] Add .direnv
-[ ] Add shell.nix
+[ ] Need to fix CI
 
 ## Version
 
