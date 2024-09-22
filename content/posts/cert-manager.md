@@ -7,6 +7,7 @@ tags = [
     "security",
     "cert-manager",
 ]
+draft = true
 +++
 
 As cert-manager approaches to hit v1.0 I found a few things that I need to start 
