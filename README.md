@@ -2,8 +2,6 @@
 
 # Personal website
 
-[ ] Need to fix CI
-
 ## Version
 
     hugo            v0.126.1
@@ -34,15 +32,4 @@
 
 ## CI
 
-- Github actions will build the site for any branch besides `gh-pages`. 
-
-- It will only publish for `master`.
-
-### Requirements
-- uses: actions/checkout@v1
-- uses: clvx/hugo-action@master
-- uses: actions/upload-artifact@v1
-- uses: actions/checkout@v2
-- uses: actions/download-artifact@v1
-- uses: webfactory/ssh-agent@v0.2.0
-- uses: JamesIves/github-pages-deploy-action@releases/v3
+- Github actions will build the site. It uses the pre defined hugo template.
