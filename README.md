@@ -1,4 +1,4 @@
-![](https://github.com/clvx/personal/workflows/CI/badge.svg)
+![](https://github.com/clvx/personal/actions/workflows/hugo.yml/badge.svg)
 
 # Personal website
 
