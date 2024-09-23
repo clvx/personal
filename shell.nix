@@ -13,6 +13,7 @@ pkgs.mkShell {
       echo 'Running post shell hook...'
       git submodule add -f git@github.com:lukeorth/poison.git --commit 07485e85f0247518bc64ed0cc6fd6b39abe3d90d themes/poison
       git submodule update --init --recursive
+      hugo
     fi
   '';
 }
