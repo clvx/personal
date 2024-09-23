@@ -62,17 +62,32 @@ jobs:
       with:
         nix_path: nixpkgs=channel:nixos-unstable
     - run: nix-shell shell.nix
-    - uses: actions/upload-pages-artifact@v3
+    - uses: actions/upload-artifact@v1
       with:
-        path: ./public
+        name: blog
+        path: public/
+
   publish:
     if: github.ref == 'refs/heads/master'
-    environment:
-      name: github-pages
-      #url: ${{ steps.deployment.outputs.page_url }}
+    name: Publish site
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+    - uses: actions/checkout@v4
+      with:
+        persist-credentials: false
+    - uses: actions/download-artifact@v4
+      with:
+        name: blog
+    - shell: bash
+      run: |
+        mv blog/* ./ && rmdir blog
+    - uses: webfactory/ssh-agent@v0.9.0
+      with:
+        ssh-private-key: ${{ secrets.DEPLOY_KEY }}
+    - uses: JamesIves/github-pages-deploy-action@releases/v4
+      with:
+        SSH: true
+        BRANCH: gh-pages # The branch the action should deploy to.
+        FOLDER: . # The folder the action should deploy.
+
