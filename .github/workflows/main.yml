@@ -84,5 +84,5 @@ jobs:
     - uses: JamesIves/github-pages-deploy-action@releases/v4
       with:
         BRANCH: gh-pages # The branch the action should deploy to.
-        FOLDER: ./ # The folder the action should deploy.
+        FOLDER: . # The folder the action should deploy.
 
