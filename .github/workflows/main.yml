@@ -84,7 +84,6 @@ jobs:
     - shell: bash
       run: |
         ls -la ./
-        mv blog/* ./ && rmdir blog
     - uses: JamesIves/github-pages-deploy-action@releases/v4
       with:
         BRANCH: gh-pages # The branch the action should deploy to.
