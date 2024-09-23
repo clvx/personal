@@ -1,4 +1,4 @@
-![](https://github.com/clvx/bitclvx-blog/workflows/CI/badge.svg)
+![](https://github.com/clvx/personal/workflows/CI/badge.svg)
 
 # Personal website
 
