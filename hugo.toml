@@ -4,9 +4,9 @@ title = 'Personal Site'
 theme = 'poison'
 
 [params]
-    brand = "Luis M Ibarra"                      # name of your site - appears in the sidebar
+    brand = "Luis Ibarra"                      # name of your site - appears in the sidebar
     brand_image = "/images/clvx.jpg"    # path to the image shown in the sidebar
-    description = "I build, break, fix, and run stuff professionaly" # Used as default meta description if not specified in front matter
+    description = "I build, break, fix, and run stuff professionally" # Used as default meta description if not specified in front matter
     dark_mode = true                      # optional - defaults to false
     front_page_content = ["posts"]
     # favicon = "favicon.png"             # path to favicon (defaults to favicon.png)
