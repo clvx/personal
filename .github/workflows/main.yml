@@ -63,7 +63,7 @@ jobs:
     - uses: cachix/install-nix-action@v27
       with:
         nix_path: nixpkgs=channel:nixos-unstable
-    - run: nix-shell shell.nix && ls -la themes/poison && echo 'DONE'
+    - run: nix-shell shell.nix
     - uses: actions/upload-artifact@v4
       with:
         name: blog
@@ -81,8 +81,12 @@ jobs:
     - uses: actions/download-artifact@v4
       with:
         name: blog
+    - shell: bash
+      run: |
+        ls -la ./
+        mv blog/* ./ && rmdir blog
     - uses: JamesIves/github-pages-deploy-action@releases/v4
       with:
         BRANCH: gh-pages # The branch the action should deploy to.
-        FOLDER: ./blog/ # The folder the action should deploy.
+        FOLDER: ./ # The folder the action should deploy.
 
