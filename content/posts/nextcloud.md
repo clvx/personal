@@ -17,7 +17,7 @@ Ocean with a managed postgres and using Digital Ocean Spaces. That worked fine
 for a while but Nextcloud heavily relies in its state and it sucks bad as a cloud 
 native application.
 
-## Cloud Native headaches.
+## Cloud Native headaches
 
 1. Plugins cannot be loaded declaratively. This is a big one as it makes the 
    application very monolithic and hard to maintain. It forces you to do 
@@ -101,7 +101,7 @@ ALWAYS rotate the secret editing the *age* files after they've been built. This
 allows me loading the nextcloud admin pass, some api keys and other things.
 
 One little annoying thing about *agenix* is you need to add the *owner* and *mode* so 
-the other processes can access the secrets when they are decrypted in */run/agenix*. 
+the other processes can access the secrets when they are decrypted in `/run/agenix`. 
 Yeah, this sounds reasonable but the NixOS wiki nor the github project has this info.
 Not difficult to figure it out but annoying for sure.
 
@@ -127,6 +127,6 @@ how you tell *lego* - *certbot's library* to use the right challenge.
 
 Assuming you are comfortable with Nix and NixOS, comparing this configuration to 
 whatever the mental puzzle you have to do using on a cloud native setup is a 
-relieved.
+relief.
 
 I'm looking forward to the new pain points but it's definitely an improvement so far. 
