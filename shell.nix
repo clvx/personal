@@ -5,7 +5,7 @@ pkgs.mkShell {
     (pkgs.hugo.overrideAttrs (_: {
       version = "0.126.1";
     }))
-    pkgs.go_1_21
+    pkgs.go_1_23
     pkgs.git
   ];
    shellHook = ''
