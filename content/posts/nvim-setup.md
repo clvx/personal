@@ -9,7 +9,7 @@ tags = [
 ]
 +++
 
-For a long time I've wanted to have a portable and reproduceable editor configuration.
+For a long time I've wanted to have a portable and reproducible editor configuration.
 
 I've gone through several phases until I feel comfortable with [my dotfiles](https://github.com/clvx/nix-files/tree/master/config).
 Even though my dotfiles include a little more than my nvim configuration, it takes 
@@ -29,8 +29,8 @@ This is a variation of the previous one based on [Attlassian's article](https://
 The only improvement with this method was tracking and avoiding symlinks as 
 I tracked and ignored only things related to dotfiles in my home directory. So,
 the challenge was only fixing and ensuring runtime was good. As a companion I 
-used a mix of bash scripts and ansible to keep my system reproduceable. I started 
-looking for a better solution when I work handed me a mac device.
+used a mix of bash scripts and ansible to keep my system reproducible. I started 
+looking for a better solution when work handed me a mac device.
 
 ## Nix - current
 
