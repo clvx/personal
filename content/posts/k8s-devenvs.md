@@ -83,10 +83,25 @@ adding routes and rules to the traffic routing object. For instance,
 /featureB -> backend1 (version: 1.0.1)
 ```
 
+or mirroring
+
+```
+/featureA -> backend1 (version: 1.0.0) -> backend2 (version: 1.0.1)
+```
+
 But in other cases, you must change the code to route to the right version. This is 
 where having your code implementing [12 factor principles](https://12factor.net/) comes in handy. You allow 
 the app to control inputs and outputs based on envars which allows accepting 
 traffic from a different source and connecting to sources outside of the mesh.
+
+```
+# golden path
+example.com/featureA -> backend1 (version: 1.0.0) -> middleware (version: 1.0.0) ->  backend2 (version: 1.0.0)
+
+# here backend1 could have a CORS rule to allow traffic from example.org and 
+connects to the externalDB using the stable middleware 
+example.org/featureB -> backend1 (version: 1.0.1)  -> middleware (version: 1.0.0) -> externalDB
+```
 
 So, if your app expects a specific domain name, you can just set the envar 
 to a different one in the new version and add that hostname to the routing rules.
