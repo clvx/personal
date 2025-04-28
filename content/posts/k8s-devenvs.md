@@ -13,7 +13,7 @@ tags = [
 +++
 
 This post is inspired from a lot of conversations with an ex-colleague a couple of 
-years back and were resurrected by the [mirrord project](https://github.com/metalbear-co/mirrord).
+years back and was resurrected by the [mirrord project](https://github.com/metalbear-co/mirrord).
 
 > The first thing to understand is I just want to deploy something, hit the ingress 
 and get my feature live. SO, WHY IS THIS SO HARD? 
@@ -23,15 +23,15 @@ For instance, to deploy a new version of a microservice, you need to:
 
 1. Build the image
 2. Push the image to a registry
-3. Update the k8s objects with context of the new image - at minimum the image tag
+3. Update the k8s objects with context of the new image (at minimum the image tag)
 4. Wait for the deployment to finish
 5. Test the new version
-6. Rollback if something goes wrong
+6. Roll back if something goes wrong
 7. Repeat the process for each microservice
 8. Repeat for each environment (dev, staging, prod)
 
-On top of this you have to add aspects like approvals, release windows, data migrations, 
-coordination with QA, waiting for environments to be available, etc. Moreover, 
+On top of this, you have to add aspects like approvals, release windows, data migrations, 
+coordination with QA, waiting for environments to become available, etc. Moreover, 
 each team can own several microservices, each microservice can have several versions 
 living in its own namespace or in a shared one, and each environment can have 
 several versions of the same microservice. To make matters worse, each microservice 
@@ -61,8 +61,8 @@ Before jumping to service mesh, let's take a step back and discuss *knowing the 
 
 Knowing the version is just a version of your code which should point to a `git ref` and 
 then masquerade to `semver` or whatever versioning scheme you want to use. However,
-people tend to just include this in the image tag and leave all the configuration 
-behind without this critical data.
+people tend to just include this in the image tag and leave out critical data configuration
+data.
 Furthermore, as many follow trunk-based development, there's a golden path when 
 a release cut is made and the code is tagged. *Any variation from this path is
 considered a different behavior which is exactly what we want to aim for*.
