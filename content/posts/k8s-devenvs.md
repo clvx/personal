@@ -96,11 +96,11 @@ traffic from a different source and connecting to sources outside of the mesh.
 
 ```
 # golden path
-example.com/featureA -> backend1 (version: 1.0.0) -> middleware (version: 1.0.0) ->  backend2 (version: 1.0.0)
+example.com/ -> backend1 (version: 1.0.0) -> middleware (version: 1.0.0) ->  backend2 (version: 1.0.0)
 
 # here backend1 could have a CORS rule to allow traffic from example.org and 
 connects to the externalDB using the stable middleware 
-example.org/featureB -> backend1 (version: 1.0.1)  -> middleware (version: 1.0.0) -> externalDB
+example.org/featureA -> backend1 (version: 1.0.1)  -> middleware (version: 1.0.0) -> externalDB
 ```
 
 So, if your app expects a specific domain name, you can just set the envar 
