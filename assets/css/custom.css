@@ -1,0 +1,12 @@
+.sidebar ul li {
+  border-bottom: 1px solid rgba(255,255,255,0.05); /* subtle divider */
+  padding-bottom: 0.25em;
+}
+
+.sidebar ul li a {
+  display: block;
+  padding: 0.25em 0;
+  ufont-size: 0.95em;
+  font-weight: 400; /* or 300 if using a thin font */
+}
+
