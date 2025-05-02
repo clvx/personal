@@ -21,6 +21,7 @@ theme = 'poison'
         {Name = "About", URL = "/about/", HasChildren = false},
         {Name = "Blog", URL = "/posts/", Pre = "Recent", HasChildren = true, Limit = 10},
     ]
+    cloudflareAnalyticsToken = "421c3408c9914c73a1d5275c076f2d0b"
 
 github_url   = "https://www.github.com/clvx"
 linkedin_url = "https://www.linkedin.com/in/clvx"
