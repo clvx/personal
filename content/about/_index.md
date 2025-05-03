@@ -1,10 +1,11 @@
 +++
-title = 'About'
+title = 'About Me'
 date = 2024-09-20T14:45:01-06:00
 draft = false
 +++
 
-> Programmer who is passionate on software development for operations and distributed systems.
+> I like to develop like my code is local, my infra is self-hosted, 
+and my systems fast enough to keep up with ideas.
 
 ### Development Skills
 
