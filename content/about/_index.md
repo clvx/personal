@@ -6,6 +6,10 @@ draft = false
 
 > I like to develop like my code is local, my infra is self-hosted, 
 and my systems fast enough to keep up with ideas.
+>
+> When something breaks, I want to understand why.
+>
+> When something works, I want to know how to make it simpler.
 
 ### Development Skills
 
