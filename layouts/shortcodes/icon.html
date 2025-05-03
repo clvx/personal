@@ -1,0 +1,4 @@
+{{ $path := printf "static/images/icons/%s.svg" (.Get 0) }}
+{{ $svg := readFile $path }}
+<span class="icon" title="{{ .Get 0 }}">{{ $svg | safeHTML }}</span>
+
