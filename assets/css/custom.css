@@ -25,3 +25,14 @@
 .content {
     flex: 2 1 70%; /* wider content panel */
 }
+
+.icon-grid {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.icon {
+  width: 32px;
+  height: 32px;
+}
+
