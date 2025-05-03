@@ -10,3 +10,18 @@
   font-weight: 400; /* or 300 if using a thin font */
 }
 
+
+/* middle plane */
+
+.container {
+    max-width: 1400px !important; /* or any width you prefer */
+}
+
+.main {
+    width: 100%;
+    max-width: 100%;
+}
+
+.content {
+    flex: 2 1 70%; /* wider content panel */
+}
